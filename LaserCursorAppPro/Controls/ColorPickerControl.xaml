@@ -5,7 +5,7 @@
     <StackPanel Margin="4,4,4,0">
 
         <!-- S/V Canvas -->
-        <Canvas x:Name="SvCanvas" Width="216" Height="140" Cursor="Crosshair"
+        <Canvas x:Name="SvCanvas" Width="216" Height="140" Cursor="Cross"
                 MouseLeftButtonDown="SvCanvas_MouseDown"
                 MouseMove="SvCanvas_MouseMove"
                 MouseLeftButtonUp="SvCanvas_MouseUp">
