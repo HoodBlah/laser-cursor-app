@@ -1,0 +1,42 @@
+name: Release Pro
+
+on:
+  push:
+    branches:
+      - pro
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish
+        run: >
+          dotnet publish LaserCursorAppPro/LaserCursorAppPro.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          /p:PublishSingleFile=true
+          /p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "pro-v0.${{ github.run_number }}"
+          gh release create $tag publish/LaserCursorAppPro.exe `
+            --title "LaserCursorApp Pro $tag" `
+            --notes "Automated Pro release from commit ${{ github.sha }}"
