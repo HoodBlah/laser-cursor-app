@@ -1,0 +1,15 @@
+# Standard .NET ignores
+bin/
+obj/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Other common ignores
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
