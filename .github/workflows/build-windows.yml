@@ -1,0 +1,49 @@
+name: Build Windows App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore LaserCursorApp.csproj
+
+      - name: Publish Win-x64
+        run: >
+          dotnet publish LaserCursorApp.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          /p:PublishSingleFile=true
+          /p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish/win-x64
+
+      - name: Create Zip Package
+        shell: pwsh
+        run: |
+          $output = "publish/LaserCursorApp-win-x64.zip"
+          if (Test-Path $output) {
+            Remove-Item $output -Force
+          }
+          Compress-Archive -Path "publish/win-x64/*" -DestinationPath $output
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LaserCursorApp-win-x64
+          path: publish/LaserCursorApp-win-x64.zip
+          if-no-files-found: error
