@@ -1,0 +1,364 @@
+<Window x:Class="LaserCursorAppPro.Options.OptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="clr-namespace:LaserCursorAppPro.Controls"
+        Title="Laser Cursor Pro — Options"
+        Width="780" Height="640"
+        MinWidth="680" MinHeight="540"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen"
+        Background="#1A1A2A">
+
+    <Window.Resources>
+        <!-- Section header -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="Foreground"   Value="#FF3838"/>
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Margin"       Value="0,14,0,6"/>
+        </Style>
+        <!-- Setting row label -->
+        <Style x:Key="RowLabel" TargetType="TextBlock">
+            <Setter Property="Foreground"         Value="#CCCCDD"/>
+            <Setter Property="VerticalAlignment"  Value="Center"/>
+            <Setter Property="Width"              Value="140"/>
+            <Setter Property="FontSize"           Value="12"/>
+        </Style>
+        <!-- Value readout -->
+        <Style x:Key="ValueLabel" TargetType="TextBlock">
+            <Setter Property="Foreground"        Value="#9999AA"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Width"             Value="44"/>
+            <Setter Property="FontFamily"        Value="Consolas"/>
+            <Setter Property="FontSize"          Value="11"/>
+            <Setter Property="Margin"            Value="6,0,0,0"/>
+        </Style>
+        <!-- CheckBox -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#CCCCDD"/>
+            <Setter Property="FontSize"   Value="12"/>
+        </Style>
+        <!-- Separator -->
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="#2E2E42"/>
+            <Setter Property="Margin"     Value="0,4,0,8"/>
+        </Style>
+        <!-- Group box -->
+        <Style TargetType="GroupBox">
+            <Setter Property="Foreground"   Value="#AAAACC"/>
+            <Setter Property="BorderBrush"  Value="#2E2E44"/>
+            <Setter Property="Margin"       Value="0,0,0,10"/>
+            <Setter Property="Padding"      Value="8,4,8,8"/>
+        </Style>
+        <!-- List box -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background"   Value="#252535"/>
+            <Setter Property="BorderBrush"  Value="#3A3A52"/>
+            <Setter Property="Foreground"   Value="#DDDDEE"/>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="#DDDDEE"/>
+            <Setter Property="Padding"    Value="6,4"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#3A3A5A"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Button -->
+        <Style TargetType="Button">
+            <Setter Property="Background"   Value="#2E2E44"/>
+            <Setter Property="Foreground"   Value="#CCCCDD"/>
+            <Setter Property="BorderBrush"  Value="#444466"/>
+            <Setter Property="Padding"      Value="10,4"/>
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Cursor"       Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3E3E5E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Tab style -->
+        <Style TargetType="TabItem">
+            <Setter Property="Background"  Value="#252535"/>
+            <Setter Property="Foreground"  Value="#AAAACC"/>
+            <Setter Property="BorderBrush" Value="#2E2E44"/>
+            <Setter Property="Padding"     Value="16,6"/>
+            <Setter Property="FontSize"    Value="12"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1E1E2E"/>
+                    <Setter Property="Foreground" Value="#FF3838"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="TabControl">
+            <Setter Property="Background"  Value="#1E1E2E"/>
+            <Setter Property="BorderBrush" Value="#2E2E44"/>
+        </Style>
+        <!-- TextBox -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background"   Value="#252535"/>
+            <Setter Property="Foreground"   Value="#DDDDEE"/>
+            <Setter Property="BorderBrush"  Value="#3A3A52"/>
+            <Setter Property="Padding"      Value="4,2"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Tabs ── -->
+        <TabControl Grid.Row="0" Margin="8,8,8,0">
+
+            <!-- ════════ DOT TAB ════════ -->
+            <TabItem Header="Dot">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#1E1E2E">
+                    <StackPanel Margin="16,8,16,16">
+
+                        <!-- Dot Appearance -->
+                        <TextBlock Text="DOT APPEARANCE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Dot Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <ctrl:ColorPickerControl x:Name="DotColorPicker" ColorChanged="DotColor_Changed"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                                <TextBlock Text="Dot Size" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="44"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Slider x:Name="DotSizeSlider" Minimum="1" Maximum="20" TickFrequency="0.5"
+                                            ValueChanged="DotSize_Changed" Grid.Column="0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="DotSizeLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Dot Glow -->
+                        <TextBlock Text="DOT GLOW" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <CheckBox x:Name="DotGlowCheck" Content="Enable dot glow" Margin="0,0,0,10"
+                                  Checked="DotGlow_Toggle" Unchecked="DotGlow_Toggle"/>
+
+                        <StackPanel x:Name="DotGlowPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <ctrl:ColorPickerControl x:Name="DotGlowColorPicker" ColorChanged="DotGlowColor_Changed"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                                    <TextBlock Text="Glow Radius" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="44"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="DotGlowRadiusSlider" Minimum="4" Maximum="50" TickFrequency="1"
+                                                ValueChanged="DotGlowRadius_Changed" Grid.Column="0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="DotGlowRadiusLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ════════ TRAIL TAB ════════ -->
+            <TabItem Header="Trail">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#1E1E2E">
+                    <StackPanel Margin="16,8,16,16">
+
+                        <!-- Trail Color -->
+                        <TextBlock Text="TRAIL COLOR" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Trail Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <ctrl:ColorPickerControl x:Name="TailColorPicker" ColorChanged="TailColor_Changed"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                                <CheckBox x:Name="TailGradCheck" Content="Enable gradient" Margin="0,8,0,10"
+                                          Checked="TailGrad_Toggle" Unchecked="TailGrad_Toggle"/>
+                                <TextBlock Text="Gradient End Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <ctrl:ColorPickerControl x:Name="TailGradColorPicker" IsEnabled="False"
+                                                         ColorChanged="TailGradColor_Changed"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Trail Shape -->
+                        <TextBlock Text="TRAIL SHAPE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Length (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <Slider x:Name="TailLengthSlider" Minimum="80" Maximum="1200" Grid.Column="1"
+                                    VerticalAlignment="Center" ValueChanged="TailLength_Changed"/>
+                            <TextBlock x:Name="TailLengthLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Thickness (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <Slider x:Name="TailThicknessSlider" Minimum="2" Maximum="30" Grid.Column="1"
+                                    VerticalAlignment="Center" ValueChanged="TailThickness_Changed"/>
+                            <TextBlock x:Name="TailThicknessLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Taper" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <Slider x:Name="TailTaperSlider" Minimum="0.2" Maximum="2.5" Grid.Column="1"
+                                    VerticalAlignment="Center" ValueChanged="TailTaper_Changed"/>
+                            <TextBlock x:Name="TailTaperLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                        </Grid>
+
+                        <!-- Smoothness -->
+                        <Grid Margin="0,4,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Butter Mode" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <CheckBox x:Name="ButterCheck" Content="Ultra-smooth high-framerate tracking"
+                                      Grid.Column="1" VerticalAlignment="Center"
+                                      Checked="Butter_Toggle" Unchecked="Butter_Toggle"/>
+                        </Grid>
+
+                        <!-- Trail Glow -->
+                        <TextBlock Text="TRAIL GLOW" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <CheckBox x:Name="TailGlowCheck" Content="Enable trail glow" Margin="0,0,0,10"
+                                  Checked="TailGlow_Toggle" Unchecked="TailGlow_Toggle"/>
+
+                        <StackPanel x:Name="TailGlowPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <ctrl:ColorPickerControl x:Name="TailGlowColorPicker" ColorChanged="TailGlowColor_Changed"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                                    <TextBlock Text="Glow Width" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="44"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="TailGlowWidthSlider" Minimum="2" Maximum="30"
+                                                ValueChanged="TailGlowWidth_Changed" Grid.Column="0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TailGlowWidthLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ════════ PROFILES TAB ════════ -->
+            <TabItem Header="Profiles">
+                <Grid Margin="16,12" Background="#1E1E2E">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Profile list + buttons -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="SAVED PROFILES" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                        <ListBox x:Name="ProfileList" Height="280" SelectionChanged="ProfileList_Changed"/>
+
+                        <WrapPanel Margin="0,8,0,0">
+                            <Button Content="Apply"  Margin="0,0,4,4" Click="Profile_Apply"/>
+                            <Button Content="Save Current" Margin="0,0,4,4" Click="Profile_SaveCurrent"/>
+                            <Button Content="Delete" Margin="0,0,4,4" Click="Profile_Delete"/>
+                        </WrapPanel>
+
+                        <Separator Margin="0,12,0,8"/>
+                        <TextBlock Text="BUILT-IN PRESETS" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                        <ListBox x:Name="PresetList" Height="160" SelectionChanged="PresetList_Changed"/>
+                        <Button Content="Apply Preset" Margin="0,8,0,0" HorizontalAlignment="Left" Click="Preset_Apply"/>
+                    </StackPanel>
+
+                    <!-- Profile details / rename -->
+                    <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                        <TextBlock Text="PROFILE NAME" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ProfileNameBox" Padding="6,4" FontSize="13" Grid.Column="0"/>
+                            <Button Content="Rename" Margin="6,0,0,0" Grid.Column="1" Click="Profile_Rename"/>
+                        </Grid>
+
+                        <Separator Margin="0,14,0,8"/>
+                        <TextBlock Text="IMPORT / EXPORT" Style="{StaticResource SectionHeader}" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Export Profile…" Margin="0,0,8,0" Click="Profile_Export"/>
+                            <Button Content="Import Profile…" Click="Profile_Import"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- ── Live Preview ── -->
+        <Border Grid.Row="1" Margin="8,6,8,0" Background="#111122"
+                BorderBrush="#2E2E44" BorderThickness="1" CornerRadius="4" Height="54">
+            <Grid>
+                <TextBlock Text="LIVE PREVIEW" Foreground="#333355" FontSize="9" FontWeight="SemiBold"
+                           VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0"/>
+                <Canvas x:Name="PreviewCanvas" Margin="60,4,4,4" ClipToBounds="True"/>
+            </Grid>
+        </Border>
+
+        <!-- ── Buttons ── -->
+        <Border Grid.Row="2" Background="#141420" Padding="8,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Reset to Defaults" Margin="0,0,8,0" Click="Reset_Click"/>
+                <Button Content="Close" Padding="18,4" Click="Close_Click"
+                        Background="#FF3838" Foreground="White" BorderBrush="#CC2222"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
