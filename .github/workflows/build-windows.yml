@@ -1,4 +1,4 @@
-name: Build Windows App
+name: Release
 
 on:
   push:
@@ -7,8 +7,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  release:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -19,10 +21,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore
-        run: dotnet restore LaserCursorApp.csproj
-
-      - name: Publish Win-x64
+      - name: Publish
         run: >
           dotnet publish LaserCursorApp.csproj
           -c Release
@@ -30,20 +29,14 @@ jobs:
           --self-contained true
           /p:PublishSingleFile=true
           /p:IncludeNativeLibrariesForSelfExtract=true
-          -o publish/win-x64
+          -o publish
 
-      - name: Create Zip Package
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          $output = "publish/LaserCursorApp-win-x64.zip"
-          if (Test-Path $output) {
-            Remove-Item $output -Force
-          }
-          Compress-Archive -Path "publish/win-x64/*" -DestinationPath $output
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: LaserCursorApp-win-x64
-          path: publish/LaserCursorApp-win-x64.zip
-          if-no-files-found: error
+          $tag = "v0.${{ github.run_number }}"
+          gh release create $tag publish/LaserCursorApp.exe `
+            --title "LaserCursorApp $tag" `
+            --notes "Automated release from commit ${{ github.sha }}"
