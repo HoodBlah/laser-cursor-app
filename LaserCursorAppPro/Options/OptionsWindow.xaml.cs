@@ -17,7 +17,7 @@ public partial class OptionsWindow : Window
     private LaserSettings         _settings;
     private readonly Action<LaserSettings> _onChanged;
     private List<LaserProfile>    _profiles = new();
-    private bool                  _loading;
+    private bool                  _loading = true;  // suppress events during InitializeComponent
 
     public OptionsWindow(LaserSettings settings, Action<LaserSettings> onChanged)
     {
