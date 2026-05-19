@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ctrl="clr-namespace:LaserCursorAppPro.Controls"
         Title="Laser Cursor Pro — Options"
-        Width="780" Height="640"
-        MinWidth="680" MinHeight="540"
+        Width="820" Height="720"
+        MinWidth="720" MinHeight="600"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterScreen"
         Background="#1A1A2A">
@@ -104,6 +104,21 @@
             <Setter Property="BorderBrush"  Value="#3A3A52"/>
             <Setter Property="Padding"      Value="4,2"/>
         </Style>
+        <!-- Reset button — subtle, highlights red on hover -->
+        <Style x:Key="ResetBtn" TargetType="Button">
+            <Setter Property="Background"        Value="Transparent"/>
+            <Setter Property="Foreground"        Value="#44445A"/>
+            <Setter Property="BorderThickness"   Value="0"/>
+            <Setter Property="Padding"           Value="3,0"/>
+            <Setter Property="FontSize"          Value="14"/>
+            <Setter Property="Cursor"            Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#FF3838"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -132,12 +147,18 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Dot Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotColor" ToolTip="Reset to baseline"/>
+                                    <TextBlock Text="Dot Color" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                </DockPanel>
                                 <ctrl:ColorPickerControl x:Name="DotColorPicker" ColorChanged="DotColor_Changed"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                                <TextBlock Text="Dot Size" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotSize" ToolTip="Reset to baseline"/>
+                                    <TextBlock Text="Dot Size" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                </DockPanel>
                                 <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -154,8 +175,11 @@
                         <TextBlock Text="DOT GLOW" Style="{StaticResource SectionHeader}"/>
                         <Separator/>
 
-                        <CheckBox x:Name="DotGlowCheck" Content="Enable dot glow" Margin="0,0,0,10"
-                                  Checked="DotGlow_Toggle" Unchecked="DotGlow_Toggle"/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotGlowEnabled" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="DotGlowCheck" Content="Enable dot glow"
+                                      Checked="DotGlow_Toggle" Unchecked="DotGlow_Toggle"/>
+                        </DockPanel>
 
                         <StackPanel x:Name="DotGlowPanel" IsEnabled="False">
                             <Grid Margin="0,0,0,8">
@@ -165,12 +189,18 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotGlowColor" ToolTip="Reset to baseline"/>
+                                        <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    </DockPanel>
                                     <ctrl:ColorPickerControl x:Name="DotGlowColorPicker" ColorChanged="DotGlowColor_Changed"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                                    <TextBlock Text="Glow Radius" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotGlowRadius" ToolTip="Reset to baseline"/>
+                                        <TextBlock Text="Glow Radius" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    </DockPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -204,14 +234,23 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Trail Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailColor" ToolTip="Reset to baseline"/>
+                                    <TextBlock Text="Trail Color" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                </DockPanel>
                                 <ctrl:ColorPickerControl x:Name="TailColorPicker" ColorChanged="TailColor_Changed"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                                <CheckBox x:Name="TailGradCheck" Content="Enable gradient" Margin="0,8,0,10"
-                                          Checked="TailGrad_Toggle" Unchecked="TailGrad_Toggle"/>
-                                <TextBlock Text="Gradient End Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <DockPanel Margin="0,8,0,10">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGradEnabled" ToolTip="Reset to baseline"/>
+                                    <CheckBox x:Name="TailGradCheck" Content="Enable gradient"
+                                              Checked="TailGrad_Toggle" Unchecked="TailGrad_Toggle"/>
+                                </DockPanel>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGradColor" ToolTip="Reset to baseline"/>
+                                    <TextBlock Text="Gradient End Color" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                </DockPanel>
                                 <ctrl:ColorPickerControl x:Name="TailGradColorPicker" IsEnabled="False"
                                                          ColorChanged="TailGradColor_Changed"/>
                             </StackPanel>
@@ -222,44 +261,51 @@
                         <Separator/>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Length (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailLengthSlider" Minimum="80" Maximum="1200" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailLength_Changed"/>
                             <TextBlock x:Name="TailLengthLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailLength" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Thickness (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailThicknessSlider" Minimum="2" Maximum="30" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailThickness_Changed"/>
                             <TextBlock x:Name="TailThicknessLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailThickness" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Taper" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailTaperSlider" Minimum="0.2" Maximum="2.5" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailTaper_Changed"/>
                             <TextBlock x:Name="TailTaperLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailTaper" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <!-- Smoothness -->
                         <Grid Margin="0,4,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Butter Mode" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <CheckBox x:Name="ButterCheck" Content="Ultra-smooth high-framerate tracking"
                                       Grid.Column="1" VerticalAlignment="Center"
                                       Checked="Butter_Toggle" Unchecked="Butter_Toggle"/>
+                            <Button Content="&#x21BA;" Grid.Column="2" Style="{StaticResource ResetBtn}" Click="ResetButterMode" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <!-- Trail Glow -->
                         <TextBlock Text="TRAIL GLOW" Style="{StaticResource SectionHeader}"/>
                         <Separator/>
 
-                        <CheckBox x:Name="TailGlowCheck" Content="Enable trail glow" Margin="0,0,0,10"
-                                  Checked="TailGlow_Toggle" Unchecked="TailGlow_Toggle"/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGlowEnabled" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="TailGlowCheck" Content="Enable trail glow"
+                                      Checked="TailGlow_Toggle" Unchecked="TailGlow_Toggle"/>
+                        </DockPanel>
 
                         <StackPanel x:Name="TailGlowPanel" IsEnabled="False">
                             <Grid Margin="0,0,0,8">
@@ -269,12 +315,18 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGlowColor" ToolTip="Reset to baseline"/>
+                                        <TextBlock Text="Glow Color" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    </DockPanel>
                                     <ctrl:ColorPickerControl x:Name="TailGlowColorPicker" ColorChanged="TailGlowColor_Changed"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                                    <TextBlock Text="Glow Width" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGlowWidth" ToolTip="Reset to baseline"/>
+                                        <TextBlock Text="Glow Width" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    </DockPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -294,6 +346,7 @@
 
             <!-- ════════ PROFILES TAB ════════ -->
             <TabItem Header="Profiles">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#1E1E2E">
                 <Grid Margin="16,12" Background="#1E1E2E">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="220"/>
@@ -338,6 +391,7 @@
                     </StackPanel>
 
                 </Grid>
+                </ScrollViewer>
             </TabItem>
 
         </TabControl>

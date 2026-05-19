@@ -15,6 +15,7 @@ namespace LaserCursorAppPro.Options;
 public partial class OptionsWindow : Window
 {
     private LaserSettings         _settings;
+    private LaserSettings         _baseline = new();  // reference preset for reset buttons
     private readonly Action<LaserSettings> _onChanged;
     private List<LaserProfile>    _profiles = new();
     private bool                  _loading = true;  // suppress events during InitializeComponent
@@ -203,6 +204,132 @@ public partial class OptionsWindow : Window
         Notify();
     }
 
+    // ── Per-setting reset handlers ────────────────────────────────────────────
+
+    private void ResetDotColor(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        DotColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.DotColor);
+        _loading = false;
+        _settings.DotColor = _baseline.DotColor;
+        Notify();
+    }
+
+    private void ResetDotSize(object s, RoutedEventArgs e)
+    {
+        _loading = true; DotSizeSlider.Value = _baseline.DotSize; _loading = false;
+        _settings.DotSize = _baseline.DotSize;
+        DotSizeLabel.Text = $"{_baseline.DotSize:F1}";
+        Notify();
+    }
+
+    private void ResetDotGlowEnabled(object s, RoutedEventArgs e)
+    {
+        _loading = true; DotGlowCheck.IsChecked = _baseline.DotGlowEnabled; _loading = false;
+        _settings.DotGlowEnabled = _baseline.DotGlowEnabled;
+        DotGlowPanel.IsEnabled   = _baseline.DotGlowEnabled;
+        Notify();
+    }
+
+    private void ResetDotGlowColor(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        DotGlowColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.DotGlowColor);
+        _loading = false;
+        _settings.DotGlowColor = _baseline.DotGlowColor;
+        Notify();
+    }
+
+    private void ResetDotGlowRadius(object s, RoutedEventArgs e)
+    {
+        _loading = true; DotGlowRadiusSlider.Value = _baseline.DotGlowRadius; _loading = false;
+        _settings.DotGlowRadius   = _baseline.DotGlowRadius;
+        DotGlowRadiusLabel.Text   = $"{_baseline.DotGlowRadius:F1}";
+        Notify();
+    }
+
+    private void ResetTailColor(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        TailColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.TailColor);
+        _loading = false;
+        _settings.TailColor = _baseline.TailColor;
+        Notify();
+    }
+
+    private void ResetTailGradEnabled(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailGradCheck.IsChecked = _baseline.TailGradientEnabled; _loading = false;
+        _settings.TailGradientEnabled  = _baseline.TailGradientEnabled;
+        TailGradColorPicker.IsEnabled  = _baseline.TailGradientEnabled;
+        Notify();
+    }
+
+    private void ResetTailGradColor(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        TailGradColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.TailGradientEndColor);
+        _loading = false;
+        _settings.TailGradientEndColor = _baseline.TailGradientEndColor;
+        Notify();
+    }
+
+    private void ResetTailLength(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailLengthSlider.Value = _baseline.TailLengthMs; _loading = false;
+        _settings.TailLengthMs  = _baseline.TailLengthMs;
+        TailLengthLabel.Text    = $"{_baseline.TailLengthMs:F0}";
+        Notify();
+    }
+
+    private void ResetTailThickness(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailThicknessSlider.Value = _baseline.TailThickness; _loading = false;
+        _settings.TailThickness  = _baseline.TailThickness;
+        TailThicknessLabel.Text  = $"{_baseline.TailThickness:F1}";
+        Notify();
+    }
+
+    private void ResetTailTaper(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailTaperSlider.Value = _baseline.TailTaperPower; _loading = false;
+        _settings.TailTaperPower = _baseline.TailTaperPower;
+        TailTaperLabel.Text      = $"{_baseline.TailTaperPower:F2}";
+        Notify();
+    }
+
+    private void ResetButterMode(object s, RoutedEventArgs e)
+    {
+        _loading = true; ButterCheck.IsChecked = _baseline.ButterModeEnabled; _loading = false;
+        _settings.ButterModeEnabled = _baseline.ButterModeEnabled;
+        Notify();
+    }
+
+    private void ResetTailGlowEnabled(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailGlowCheck.IsChecked = _baseline.TailGlowEnabled; _loading = false;
+        _settings.TailGlowEnabled = _baseline.TailGlowEnabled;
+        TailGlowPanel.IsEnabled   = _baseline.TailGlowEnabled;
+        Notify();
+    }
+
+    private void ResetTailGlowColor(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        TailGlowColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.TailGlowColor);
+        _loading = false;
+        _settings.TailGlowColor = _baseline.TailGlowColor;
+        Notify();
+    }
+
+    private void ResetTailGlowWidth(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailGlowWidthSlider.Value = _baseline.TailGlowWidth; _loading = false;
+        _settings.TailGlowWidth = _baseline.TailGlowWidth;
+        TailGlowWidthLabel.Text = $"{_baseline.TailGlowWidth:F1}";
+        Notify();
+    }
+
     // ── Profiles ──────────────────────────────────────────────────────────────
 
     private void LoadProfiles()
@@ -246,9 +373,10 @@ public partial class OptionsWindow : Window
 
     private void ApplyProfileSettings(LaserSettings s)
     {
-        _settings = s;
+        _baseline = s;          // the reference preset; reset buttons restore to this
+        _settings = s.Clone();  // working copy the user edits from
         _loading  = true;
-        LoadSettingsToUI(s);
+        LoadSettingsToUI(_settings);
         _loading  = false;
         Notify();
     }
