@@ -18,13 +18,13 @@ Two separate applications, two separate GitHub branches, two separate executable
 
 The free tier. Ships today.
 
-- Red laser trail with smooth Catmull-Rom curve rendering
-- Dynamic tapered trail (thick at head, fades to nothing at tail)
-- Butter Mode for ultra-smooth high-framerate tracking
-- System tray toggle (on/off)
-- Multi-monitor aware full-desktop overlay
-- Click-through transparent window (never blocks input)
-- Launch at startup option (tray menu)
+- ✅ Red laser trail with smooth Catmull-Rom curve rendering
+- ✅ Dynamic tapered trail (thick at head, fades to nothing at tail)
+- ✅ Butter Mode for ultra-smooth high-framerate tracking
+- ✅ System tray toggle (on/off)
+- ✅ Multi-monitor aware full-desktop overlay
+- ✅ Click-through transparent window (never blocks input)
+- ✅ Launch at startup option (tray menu)
 
 ---
 
@@ -41,8 +41,8 @@ imported as `.lasercfg` preset files.
 
 Customize the appearance of the dot at the tip of the laser.
 
-- **Color** — color wheel picker + RGB/HEX input + opacity slider
-- **Size** — slider (small → large, in px)
+- ✅ **Color** — color wheel picker + RGB/HEX input + opacity slider
+- ✅ **Size** — slider (small → large, in px)
 - **Shape presets** — Circle (default), Star, Diamond, Crosshair
 - **Custom image** — import any PNG/SVG as the dot; adjustable size and transparency
 - **Pulse animation** — optional rhythmic size oscillation; speed and intensity adjustable
@@ -54,9 +54,9 @@ Customize the appearance of the dot at the tip of the laser.
 
 An optional soft radial glow rendered behind the dot.
 
-- **Enable/disable** toggle
-- **Color** — independent color wheel + RGB/HEX input (can differ from dot color)
-- **Radius** — size of the glow halo in px
+- ✅ **Enable/disable** toggle
+- ✅ **Color** — independent color wheel + RGB/HEX input (can differ from dot color)
+- ✅ **Radius** — size of the glow halo in px
 - **Intensity/opacity** — how bright and visible the glow appears
 - **Bloom style** — Soft (Gaussian), Hard (sharp edge), Pulse (synced to dot pulse if enabled)
 
@@ -66,13 +66,15 @@ An optional soft radial glow rendered behind the dot.
 
 Fine-grained control over the trailing streak behind the cursor.
 
-- **Color** — color wheel + RGB/HEX input + opacity slider
-- **Gradient mode** — set a second color so the tail shifts hue from head to tail
-- **Length** — how long the trail persists before fading (ms value or Short/Medium/Long preset)
-- **Thickness** — max width at the head end in px
-- **Taper profile** — how quickly the trail narrows (linear, exponential, or custom curve)
+- ✅ **Color** — color wheel + RGB/HEX input + opacity slider
+- ✅ **Gradient mode** — set a second color so the tail shifts hue from head to tail
+- ✅ **Length** — how long the trail persists before fading (ms value or Short/Medium/Long preset)
+- ✅ **Thickness** — max width at the head end in px
+- ✅ **Taper profile** — how quickly the trail narrows (linear, exponential, or custom curve)
 - **Fade style** — Alpha only, Thin-and-fade (default), or Glow-dissolve
 - **Smoothness** — dedicated slider for Catmull-Rom subdivision density, independent of Butter Mode
+- **Motion blur** — optional directional blur rendered along the trail's velocity vector; blur length and opacity adjustable; gives a high-speed "streaking" look
+- **Trail animation patterns** — style overlays applied on top of the base trail: Fire, Electric, Smoke, Rainbow (✅ implemented), Plasma; each has speed and intensity controls
 
 ---
 
@@ -80,9 +82,9 @@ Fine-grained control over the trailing streak behind the cursor.
 
 An optional bloom rendered along the full length of the trail.
 
-- **Enable/disable** toggle
-- **Color** — independent color wheel + RGB/HEX input
-- **Width** — how far the glow extends beyond the trail edges in px
+- ✅ **Enable/disable** toggle
+- ✅ **Color** — independent color wheel + RGB/HEX input
+- ✅ **Width** — how far the glow extends beyond the trail edges in px
 - **Intensity/opacity** — brightness of the bloom
 - **Falloff** — how quickly the glow fades laterally (soft vs. sharp)
 
@@ -156,11 +158,12 @@ Each state has:
 
 Save and switch between complete configurations instantly.
 
-- Create, rename, and delete named profiles (e.g. "Presentation", "Stream", "Gaming")
-- Quick-switch via tray icon submenu, no need to open Options
-- Export profile as `.lasercfg` file for sharing
-- Import `.lasercfg` from others
-- Built-in starter presets: Classic Red, Blue Ice, Golden, Neon Green, Ghost (white/dim), Cyberpunk
+- ✅ Create, rename, and delete named profiles (e.g. "Presentation", "Stream", "Gaming")
+- **Quick-switch via tray icon submenu**, no need to open Options
+- ✅ Export profile as `.lasercfg` file for sharing
+- ✅ Import `.lasercfg` from others
+- ✅ Built-in starter presets: Classic Red, Blue Ice, Golden, Neon Green, Ghost (white/dim), Cyberpunk
+- **Custom themes** — themed color + effect bundles that restyle the entire UI palette and defaults at once (e.g. "Cyberpunk", "Pastel", "Monochrome"); distinct from profiles in that a theme affects aesthetic defaults rather than specific slider values; importable as `.lasertheme` files
 
 ---
 
@@ -168,11 +171,12 @@ Save and switch between complete configurations instantly.
 
 Control exactly when the laser effect is active.
 
-- **Always on** (current default)
+- ✅ **Always on** (current default)
 - **Hold button** — laser only shows while a chosen key or mouse button is held
 - **Toggle hotkey** — global hotkey turns laser on/off (fully customizable key combo)
 - **App-focus trigger** — automatically activates when specific apps are foregrounded
   (e.g. PowerPoint, Keynote, OBS, Zoom) and deactivates otherwise; app list is user-managed
+- **Presentation mode** — single toggle that applies a curated set of overrides optimized for presenting: enlarged dot, longer trail, reduced distracting effects, auto-hides after 3 s of no movement, re-appears on movement; activatable via hotkey or app-focus trigger on PowerPoint/Keynote/Slides
 
 ---
 
@@ -182,11 +186,70 @@ Control exactly when the laser effect is active.
 - **Per-monitor DPI scaling** — correctly scales overlay on mixed-resolution multi-monitor setups
 - **Invert mode** — renders laser in a color that maximizes contrast against the screen below
 - **Reduced motion** — disables all pulse/spin/particle/click animations for accessibility
+- **Auto-hide** — automatically fades the laser out after a configurable idle timeout (0.5 s – 30 s); reappears instantly on movement; timeout and fade duration both adjustable
 
 ---
 
 ### 11. Startup & System Integration
 
-- **Launch at Windows startup** — optional auto-run on login via registry
-- **Start minimized to tray** — no window shown on launch
+- ✅ **Launch at Windows startup** — optional auto-run on login via registry
+- ✅ **Start minimized to tray** — no window shown on launch
 - **Restore last active profile on startup**
+
+---
+
+### 12. Cursor Spotlight
+
+Darkens the screen everywhere except a soft circular halo centered on the cursor — draws audience attention to the pointer during presentations or recordings.
+
+- **Enable/disable** toggle (hotkey assignable)
+- **Spotlight radius** — size of the lit circle in px
+- **Dim opacity** — how dark the surrounding screen gets (0 % = transparent, 100 % = fully black)
+- **Edge softness** — feathering width of the vignette falloff
+- **Spotlight color tint** — optionally tint the lit area (e.g. warm yellow, cool blue)
+- **Fade-in/out speed** — transition duration when enabling or disabling
+
+---
+
+### 13. Window Highlighting
+
+Draws a colored border or glow around whichever window is under the cursor, making the active target obvious during demos.
+
+- **Enable/disable** toggle
+- **Highlight style** — Outline border, Inner glow, Corner brackets, or Full tint
+- **Color** — color picker with opacity
+- **Border thickness** — width of the highlight frame in px
+- **Activation threshold** — how long cursor must hover before the highlight appears (prevents flicker)
+- **Exclude list** — windows or process names to never highlight (e.g. the taskbar)
+
+---
+
+### 14. RGB Peripheral Sync
+
+Mirrors the active laser color to supported RGB peripherals in real time.
+
+- **Enable/disable** toggle per device category
+- **Supported SDKs** — Razer Chroma, Corsair iCUE, Logitech GHUB, OpenRGB (catch-all)
+- **Sync mode**
+  - *Match dot color* — peripherals match the current dot color
+  - *Match trail color* — peripherals match the current trail color
+  - *Reactive* — color pulses on click or movement, returns to idle color
+  - *Rainbow sync* — peripherals cycle through ROYGBIV in time with the rainbow trail
+- **Brightness** — independent brightness multiplier for peripherals
+- **Devices** — checklist of discovered devices; individual enable/disable per device
+
+---
+
+### 15. Recording Mode & OBS Integration
+
+Optimizes the laser for screen capture and live streaming.
+
+- **Recording mode** toggle — switches to a rendering profile tuned for capture:
+  - Boosts trail opacity and thickness so it reads clearly on compressed video
+  - Disables effects that don't capture well (e.g. subtle glow on dark backgrounds)
+  - Optionally locks framerate to match the capture framerate
+- **OBS integration**
+  - Exposes a named window source (`Laser Cursor Overlay`) that OBS can capture as a transparent layer without capturing the rest of the screen
+  - Provides a WebSocket command (`laser.toggle`, `laser.setProfile`, `laser.spotlight`) so OBS scene scripts or Stream Deck buttons can control the laser
+  - Optional: receive scene-change events from OBS to auto-switch laser profiles per scene
+- **Chroma key output** — renders the overlay on a solid chroma-key background (configurable color) for use in video editing pipelines that require a keyed layer

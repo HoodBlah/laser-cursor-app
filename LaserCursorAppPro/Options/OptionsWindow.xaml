@@ -183,6 +183,34 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- Dot Image -->
+                        <TextBlock Text="DOT IMAGE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotImage" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="DotImageCheck" Content="Use custom image  (PNG, BMP, animated GIF)"
+                                      Checked="DotImage_Toggle" Unchecked="DotImage_Toggle"/>
+                        </DockPanel>
+
+                        <StackPanel x:Name="DotImagePanel" IsEnabled="False" Margin="0,0,0,10">
+                            <DockPanel Margin="0,0,0,6">
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="DotImage_Browse"
+                                        Margin="8,0,0,0" Padding="10,3"/>
+                                <Button DockPanel.Dock="Right" Content="Clear" Click="DotImage_Clear"
+                                        Padding="10,3"/>
+                                <TextBlock x:Name="DotImagePathLabel" Text="No file selected"
+                                           Foreground="#888899" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                            </DockPanel>
+                            <Border x:Name="DotImagePreviewBorder" Visibility="Collapsed"
+                                    Background="#252535" BorderBrush="#3A3A52" BorderThickness="1"
+                                    Height="80" Width="80" HorizontalAlignment="Left" Margin="0,0,0,6">
+                                <Image x:Name="DotImagePreview" Stretch="Uniform" Margin="4"/>
+                            </Border>
+                            <TextBlock Text="Dot Size scales the image." Foreground="#666680" FontSize="11"/>
+                        </StackPanel>
+
                         <!-- Dot Glow -->
                         <TextBlock Text="DOT GLOW" Style="{StaticResource SectionHeader}"/>
                         <Separator/>
@@ -256,6 +284,11 @@
 
                             <StackPanel Grid.Column="1" Margin="16,0,0,0">
                                 <DockPanel Margin="0,8,0,10">
+                                    <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailRainbow" ToolTip="Reset to baseline"/>
+                                    <CheckBox x:Name="TailRainbowCheck" Content="Rainbow trail  (ROYGBIV)"
+                                              Checked="TailRainbow_Toggle" Unchecked="TailRainbow_Toggle"/>
+                                </DockPanel>
+                                <DockPanel Margin="0,8,0,10">
                                     <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailGradEnabled" ToolTip="Reset to baseline"/>
                                     <CheckBox x:Name="TailGradCheck" Content="Enable gradient"
                                               Checked="TailGrad_Toggle" Unchecked="TailGrad_Toggle"/>
@@ -268,6 +301,35 @@
                                                          ColorChanged="TailGradColor_Changed"/>
                             </StackPanel>
                         </Grid>
+
+                        <!-- Trail Image -->
+                        <TextBlock Text="TRAIL IMAGE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetTailImage" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="TailImageCheck" Content="Use custom trail image  (PNG, BMP, GIF)"
+                                      Checked="TailImage_Toggle" Unchecked="TailImage_Toggle"/>
+                        </DockPanel>
+
+                        <StackPanel x:Name="TailImagePanel" IsEnabled="False" Margin="0,0,0,10">
+                            <DockPanel Margin="0,0,0,6">
+                                <Button DockPanel.Dock="Right" Content="Browse&#x2026;" Click="TailImage_Browse"
+                                        Margin="8,0,0,0" Padding="10,3"/>
+                                <Button DockPanel.Dock="Right" Content="Clear" Click="TailImage_Clear"
+                                        Padding="10,3"/>
+                                <TextBlock x:Name="TailImagePathLabel" Text="No file selected"
+                                           Foreground="#888899" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                            </DockPanel>
+                            <Border x:Name="TailImagePreviewBorder" Visibility="Collapsed"
+                                    Background="#252535" BorderBrush="#3A3A52" BorderThickness="1"
+                                    Height="40" HorizontalAlignment="Stretch" Margin="0,0,0,4">
+                                <Image x:Name="TailImagePreview" Stretch="Fill" Margin="4"/>
+                            </Border>
+                            <TextBlock Text="Image height fills the trail width; image width stretches along the trail length."
+                                       Foreground="#666680" FontSize="11" TextWrapping="Wrap"/>
+                        </StackPanel>
 
                         <!-- Trail Shape -->
                         <TextBlock Text="TRAIL SHAPE" Style="{StaticResource SectionHeader}"/>
@@ -354,6 +416,37 @@
                                                  GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                                     </Grid>
                                 </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Trail Wave -->
+                        <TextBlock Text="TRAIL WAVE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetWaveEnabled" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="WaveCheck" Content="Enable wave effect"
+                                      Checked="Wave_Toggle" Unchecked="Wave_Toggle"/>
+                        </DockPanel>
+
+                        <StackPanel x:Name="WavePanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Amplitude (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="WaveAmpSlider" Minimum="1" Maximum="60" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="WaveAmp_Changed"/>
+                                <TextBox x:Name="WaveAmpBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetWaveAmp" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Frequency" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="WaveFreqSlider" Minimum="0.5" Maximum="12" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="WaveFreq_Changed"/>
+                                <TextBox x:Name="WaveFreqBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetWaveFreq" ToolTip="Reset to baseline"/>
                             </Grid>
                         </StackPanel>
 

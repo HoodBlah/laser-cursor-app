@@ -53,10 +53,31 @@ public partial class OptionsWindow : Window
         DotGlowRadiusSlider.Value       = s.DotGlowRadius;
         DotGlowPanel.IsEnabled          = s.DotGlowEnabled;
 
+        DotImageCheck.IsChecked           = s.DotUseCustomImage;
+        DotImagePanel.IsEnabled           = s.DotUseCustomImage;
+        DotImagePathLabel.Text            = string.IsNullOrEmpty(s.DotImagePath)
+                                            ? "No file selected"
+                                            : Path.GetFileName(s.DotImagePath);
+        DotImagePreviewBorder.Visibility  = Visibility.Collapsed;
+        DotImagePreview.Source            = null;
+        if (!string.IsNullOrEmpty(s.DotImagePath) && File.Exists(s.DotImagePath))
+            SetDotImagePreview(s.DotImagePath);
+
         TailColorPicker.SelectedColor    = ColorHelper.ParseColor(s.TailColor);
+        TailRainbowCheck.IsChecked       = s.TailRainbowMode;
         TailGradCheck.IsChecked          = s.TailGradientEnabled;
         TailGradColorPicker.SelectedColor= ColorHelper.ParseColor(s.TailGradientEndColor);
         TailGradColorPicker.IsEnabled    = s.TailGradientEnabled;
+
+        TailImageCheck.IsChecked           = s.TailImageMode;
+        TailImagePanel.IsEnabled           = s.TailImageMode;
+        TailImagePathLabel.Text            = string.IsNullOrEmpty(s.TailImagePath)
+                                             ? "No file selected"
+                                             : Path.GetFileName(s.TailImagePath);
+        TailImagePreviewBorder.Visibility  = Visibility.Collapsed;
+        TailImagePreview.Source            = null;
+        if (!string.IsNullOrEmpty(s.TailImagePath) && File.Exists(s.TailImagePath))
+            SetTailImagePreview(s.TailImagePath);
         TailLengthSlider.Value           = s.TailLengthMs;
         TailThicknessSlider.Value        = s.TailThickness;
         TailTaperSlider.Value            = s.TailTaperPower;
@@ -66,6 +87,11 @@ public partial class OptionsWindow : Window
         TailGlowColorPicker.SelectedColor= ColorHelper.ParseColor(s.TailGlowColor);
         TailGlowWidthSlider.Value        = s.TailGlowWidth;
         TailGlowPanel.IsEnabled          = s.TailGlowEnabled;
+
+        WaveCheck.IsChecked  = s.WaveEnabled;
+        WavePanel.IsEnabled  = s.WaveEnabled;
+        WaveAmpSlider.Value  = s.WaveAmplitude;
+        WaveFreqSlider.Value = s.WaveFrequency;
 
         UpdateLabels(s);
     }
@@ -78,6 +104,8 @@ public partial class OptionsWindow : Window
         TailThicknessBox.Text  = $"{s.TailThickness:F1}";
         TailTaperBox.Text      = $"{s.TailTaperPower:F2}";
         TailGlowWidthBox.Text  = $"{s.TailGlowWidth:F1}";
+        WaveAmpBox.Text        = $"{s.WaveAmplitude:F0}";
+        WaveFreqBox.Text       = $"{s.WaveFrequency:F1}";
     }
 
     // ── Notify helper ─────────────────────────────────────────────────────────
@@ -129,6 +157,54 @@ public partial class OptionsWindow : Window
         Notify();
     }
 
+    private void DotImage_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.DotUseCustomImage = DotImageCheck.IsChecked == true;
+        DotImagePanel.IsEnabled     = _settings.DotUseCustomImage;
+        Notify();
+    }
+
+    private void DotImage_Browse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title  = "Select Dot Image",
+            Filter = "Image Files (*.png;*.jpg;*.bmp;*.gif)|*.png;*.jpg;*.bmp;*.gif"
+        };
+        if (dlg.ShowDialog() != true) return;
+        _settings.DotImagePath   = dlg.FileName;
+        DotImagePathLabel.Text   = Path.GetFileName(dlg.FileName);
+        SetDotImagePreview(dlg.FileName);
+        Notify();
+    }
+
+    private void DotImage_Clear(object sender, RoutedEventArgs e)
+    {
+        _settings.DotImagePath           = "";
+        DotImagePathLabel.Text           = "No file selected";
+        DotImagePreviewBorder.Visibility = Visibility.Collapsed;
+        DotImagePreview.Source           = null;
+        Notify();
+    }
+
+    private void SetDotImagePreview(string path)
+    {
+        try
+        {
+            var bi = new System.Windows.Media.Imaging.BitmapImage();
+            bi.BeginInit();
+            bi.UriSource    = new Uri(path);
+            bi.CacheOption  = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            bi.CreateOptions= System.Windows.Media.Imaging.BitmapCreateOptions.None;
+            bi.EndInit();
+            bi.Freeze();
+            DotImagePreview.Source           = bi;
+            DotImagePreviewBorder.Visibility = Visibility.Visible;
+        }
+        catch { /* ignore unreadable files */ }
+    }
+
     // ── Trail handlers ────────────────────────────────────────────────────────
 
     private void TailColor_Changed(object? sender, EventArgs e)
@@ -137,7 +213,12 @@ public partial class OptionsWindow : Window
         _settings.TailColor = ColorHelper.ToHex(TailColorPicker.SelectedColor);
         Notify();
     }
-
+    private void TailRainbow_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.TailRainbowMode = TailRainbowCheck.IsChecked == true;
+        Notify();
+    }
     private void TailGrad_Toggle(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
@@ -251,12 +332,103 @@ public partial class OptionsWindow : Window
         Notify();
     }
 
+    private void ResetDotImage(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        DotImageCheck.IsChecked = _baseline.DotUseCustomImage;
+        DotImagePanel.IsEnabled = _baseline.DotUseCustomImage;
+        _loading = false;
+        _settings.DotUseCustomImage      = _baseline.DotUseCustomImage;
+        _settings.DotImagePath           = _baseline.DotImagePath;
+        DotImagePathLabel.Text           = string.IsNullOrEmpty(_baseline.DotImagePath)
+                                           ? "No file selected"
+                                           : Path.GetFileName(_baseline.DotImagePath);
+        DotImagePreviewBorder.Visibility = Visibility.Collapsed;
+        DotImagePreview.Source           = null;
+        if (!string.IsNullOrEmpty(_baseline.DotImagePath) && File.Exists(_baseline.DotImagePath))
+            SetDotImagePreview(_baseline.DotImagePath);
+        Notify();
+    }
+
     private void ResetTailColor(object s, RoutedEventArgs e)
     {
         _loading = true;
         TailColorPicker.SelectedColor = ColorHelper.ParseColor(_baseline.TailColor);
         _loading = false;
         _settings.TailColor = _baseline.TailColor;
+        Notify();
+    }
+
+    private void ResetTailRainbow(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailRainbowCheck.IsChecked = _baseline.TailRainbowMode; _loading = false;
+        _settings.TailRainbowMode = _baseline.TailRainbowMode;
+        Notify();
+    }
+
+    private void TailImage_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.TailImageMode = TailImageCheck.IsChecked == true;
+        TailImagePanel.IsEnabled = _settings.TailImageMode;
+        Notify();
+    }
+
+    private void TailImage_Browse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title  = "Select Trail Image",
+            Filter = "Image Files (*.png;*.jpg;*.bmp;*.gif)|*.png;*.jpg;*.bmp;*.gif"
+        };
+        if (dlg.ShowDialog() != true) return;
+        _settings.TailImagePath  = dlg.FileName;
+        TailImagePathLabel.Text  = Path.GetFileName(dlg.FileName);
+        SetTailImagePreview(dlg.FileName);
+        Notify();
+    }
+
+    private void TailImage_Clear(object sender, RoutedEventArgs e)
+    {
+        _settings.TailImagePath            = "";
+        TailImagePathLabel.Text            = "No file selected";
+        TailImagePreviewBorder.Visibility  = Visibility.Collapsed;
+        TailImagePreview.Source            = null;
+        Notify();
+    }
+
+    private void SetTailImagePreview(string path)
+    {
+        try
+        {
+            var bi = new System.Windows.Media.Imaging.BitmapImage();
+            bi.BeginInit();
+            bi.UriSource     = new Uri(path);
+            bi.CacheOption   = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            bi.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.None;
+            bi.EndInit();
+            bi.Freeze();
+            TailImagePreview.Source           = bi;
+            TailImagePreviewBorder.Visibility = Visibility.Visible;
+        }
+        catch { }
+    }
+
+    private void ResetTailImage(object s, RoutedEventArgs e)
+    {
+        _loading = true;
+        TailImageCheck.IsChecked = _baseline.TailImageMode;
+        TailImagePanel.IsEnabled = _baseline.TailImageMode;
+        _loading = false;
+        _settings.TailImageMode           = _baseline.TailImageMode;
+        _settings.TailImagePath           = _baseline.TailImagePath;
+        TailImagePathLabel.Text           = string.IsNullOrEmpty(_baseline.TailImagePath)
+                                            ? "No file selected"
+                                            : Path.GetFileName(_baseline.TailImagePath);
+        TailImagePreviewBorder.Visibility = Visibility.Collapsed;
+        TailImagePreview.Source           = null;
+        if (!string.IsNullOrEmpty(_baseline.TailImagePath) && File.Exists(_baseline.TailImagePath))
+            SetTailImagePreview(_baseline.TailImagePath);
         Notify();
     }
 
@@ -612,5 +784,55 @@ public partial class OptionsWindow : Window
         Canvas.SetLeft(dot, head.X - _settings.DotSize);
         Canvas.SetTop (dot, head.Y - _settings.DotSize);
         PreviewCanvas.Children.Add(dot);
+    }
+
+    // ── Wave handlers ────────────────────────────────────────────────────────────────────────────────
+
+    private void Wave_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.WaveEnabled = WaveCheck.IsChecked == true;
+        WavePanel.IsEnabled   = _settings.WaveEnabled;
+        Notify();
+    }
+
+    private void WaveAmp_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.WaveAmplitude = WaveAmpSlider.Value;
+        WaveAmpBox.Text         = $"{_settings.WaveAmplitude:F0}";
+        Notify();
+    }
+
+    private void WaveFreq_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.WaveFrequency = WaveFreqSlider.Value;
+        WaveFreqBox.Text        = $"{_settings.WaveFrequency:F1}";
+        Notify();
+    }
+
+    private void ResetWaveEnabled(object s, RoutedEventArgs e)
+    {
+        _loading = true; WaveCheck.IsChecked = _baseline.WaveEnabled; _loading = false;
+        _settings.WaveEnabled = _baseline.WaveEnabled;
+        WavePanel.IsEnabled   = _baseline.WaveEnabled;
+        Notify();
+    }
+
+    private void ResetWaveAmp(object s, RoutedEventArgs e)
+    {
+        _loading = true; WaveAmpSlider.Value = _baseline.WaveAmplitude; _loading = false;
+        _settings.WaveAmplitude = _baseline.WaveAmplitude;
+        WaveAmpBox.Text         = $"{_baseline.WaveAmplitude:F0}";
+        Notify();
+    }
+
+    private void ResetWaveFreq(object s, RoutedEventArgs e)
+    {
+        _loading = true; WaveFreqSlider.Value = _baseline.WaveFrequency; _loading = false;
+        _settings.WaveFrequency = _baseline.WaveFrequency;
+        WaveFreqBox.Text        = $"{_baseline.WaveFrequency:F1}";
+        Notify();
     }
 }

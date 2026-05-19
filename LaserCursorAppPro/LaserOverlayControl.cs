@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using LaserCursorAppPro.Helpers;
 using LaserCursorAppPro.Models;
 using WpfPoint = System.Windows.Point;
@@ -22,13 +25,34 @@ public class LaserOverlayControl : FrameworkElement
     private DateTime     lastInputTime  = DateTime.MinValue;
 
     private LaserSettings settings = new();
-
-    // ── Public API ────────────────────────────────────────────────────────────
+    // ── Custom dot image ────────────────────────────────────────────────────────────
+    private readonly List<BitmapSource> _dotFrames    = new();
+    private int              _dotFrameIdx  = 0;
+    private DispatcherTimer? _gifTimer;
+    private string           _loadedDotPath = "";    // ── Trail image ───────────────────────────────────────────────────────────────
+    private BitmapSource? _trailImage;
+    private string        _loadedTrailPath = "";
+    // ── Movement direction for dot rotation ───────────────────────────────
+    private Vector _moveDir = new Vector(1, 0);
+    // ── Wave animation ────────────────────────────────────────────────────
+    private double   _wavePhase    = 0.0;
+    private DateTime _lastWaveTime = DateTime.MinValue;    // ── Public API ────────────────────────────────────────────────────────────
 
     public void ApplySettings(LaserSettings s)
     {
         settings      = s;
         trailLifetime = TimeSpan.FromMilliseconds(s.TailLengthMs);
+
+        if (s.DotUseCustomImage && s.DotImagePath != _loadedDotPath)
+            LoadDotImage(s.DotImagePath);
+        else if (!s.DotUseCustomImage)
+            UnloadDotImage();
+
+        if (s.TailImageMode && s.TailImagePath != _loadedTrailPath)
+            LoadTrailImage(s.TailImagePath);
+        else if (!s.TailImageMode)
+            UnloadTrailImage();
+
         InvalidateVisual();
     }
 
@@ -63,6 +87,24 @@ public class LaserOverlayControl : FrameworkElement
         }
 
         TrimPoints(now);
+
+        // Smooth movement direction for dot rotation
+        if (points.Count >= 3)
+        {
+            int back = Math.Min(4, points.Count - 1);
+            var recent = points[^1].Position - points[^(back + 1)].Position;
+            if (recent.Length > 0.5)
+            {
+                var rLen  = recent.Length;
+                var rNorm = new Vector(recent.X / rLen, recent.Y / rLen);
+                _moveDir  = new Vector(
+                    _moveDir.X + (rNorm.X - _moveDir.X) * 0.25,
+                    _moveDir.Y + (rNorm.Y - _moveDir.Y) * 0.25);
+                var mLen = _moveDir.Length;
+                if (mLen > 0.001) _moveDir = new Vector(_moveDir.X / mLen, _moveDir.Y / mLen);
+            }
+        }
+
         InvalidateVisual();
     }
 
@@ -79,6 +121,19 @@ public class LaserOverlayControl : FrameworkElement
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
+
+        if (settings.WaveEnabled)
+        {
+            var wNow = DateTime.UtcNow;
+            if (_lastWaveTime != DateTime.MinValue)
+                _wavePhase += (wNow - _lastWaveTime).TotalSeconds * 4.0; // 4 rad/sec travel speed
+            _lastWaveTime = wNow;
+        }
+        else
+        {
+            _wavePhase = 0.0;
+            _lastWaveTime = DateTime.MinValue;
+        }
 
         if (points.Count > 1)
         {
@@ -122,36 +177,87 @@ public class LaserOverlayControl : FrameworkElement
 
             if (Dist(a.Position, b.Position) < 0.01) continue;
 
-            MediaColor segColor;
-            if (endColor is not null)
+            if (settings.TailImageMode && _trailImage != null)
             {
-                var lerped = ColorHelper.Lerp(tailColor, endColor.Value, 1.0 - prog);
-                segColor   = MediaColor.FromArgb((byte)(lerped.A * combinedFade), lerped.R, lerped.G, lerped.B);
+                // Draw the quad in a rotated frame aligned to the trail direction so that
+                // RelativeToBoundingBox always sees an axis-aligned rectangle. This prevents
+                // the barcode/pixelated look that occurs when segments run vertically.
+                var dir      = b.Position - a.Position;
+                var segAngle = Math.Atan2(dir.Y, dir.X) * 180.0 / Math.PI;
+                var midPt    = new WpfPoint((a.Position.X + b.Position.X) * 0.5,
+                                            (a.Position.Y + b.Position.Y) * 0.5);
+                var halfLen  = dir.Length * 0.5;
+
+                var imgW   = _trailImage.PixelWidth;
+                var imgH   = _trailImage.PixelHeight;
+                var colX   = (1.0 - prog) * imgW;
+                var sliceW = Math.Max(1.0, (double)imgW / count);
+                colX       = Math.Clamp(colX, 0, imgW - sliceW);
+
+                var ib = new ImageBrush(_trailImage)
+                {
+                    ViewboxUnits  = BrushMappingMode.Absolute,
+                    Viewbox       = new Rect(colX, 0, sliceW, imgH),
+                    ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
+                    Viewport      = new Rect(0, 0, 1, 1),
+                    Stretch       = Stretch.Fill,
+                    TileMode      = TileMode.None,
+                    Opacity       = combinedFade,
+                };
+                ib.Freeze();
+
+                // Horizontal quad in rotated frame: tail-end (a) on left, head-end (b) on right
+                var hQuad = new StreamGeometry();
+                using (var ctx = hQuad.Open())
+                {
+                    ctx.BeginFigure(new WpfPoint(midPt.X - halfLen, midPt.Y - wA * 0.5), true, true);
+                    ctx.LineTo(   new WpfPoint(midPt.X - halfLen, midPt.Y + wA * 0.5), true, false);
+                    ctx.LineTo(   new WpfPoint(midPt.X + halfLen, midPt.Y + wB * 0.5), true, false);
+                    ctx.LineTo(   new WpfPoint(midPt.X + halfLen, midPt.Y - wB * 0.5), true, false);
+                }
+                hQuad.Freeze();
+
+                dc.PushTransform(new RotateTransform(segAngle, midPt.X, midPt.Y));
+                dc.DrawGeometry(ib, null, hQuad);
+                dc.Pop();
             }
             else
             {
-                segColor = MediaColor.FromArgb((byte)(tailColor.A * combinedFade), tailColor.R, tailColor.G, tailColor.B);
+                var n  = UnitNormal(a.Position, b.Position);
+                var p1 = a.Position + n * (wA * 0.5);
+                var p2 = a.Position - n * (wA * 0.5);
+                var p3 = b.Position - n * (wB * 0.5);
+                var p4 = b.Position + n * (wB * 0.5);
+
+                var quad = new StreamGeometry();
+                using (var ctx = quad.Open())
+                {
+                    ctx.BeginFigure(p1, true, true);
+                    ctx.LineTo(p2, true, false);
+                    ctx.LineTo(p3, true, false);
+                    ctx.LineTo(p4, true, false);
+                }
+                quad.Freeze();
+
+                MediaColor segColor;
+                if (settings.TailRainbowMode)
+                {
+                    var rc   = SampleRainbow(prog);
+                    segColor = MediaColor.FromArgb((byte)(255 * combinedFade), rc.R, rc.G, rc.B);
+                }
+                else if (endColor is not null)
+                {
+                    var lerped = ColorHelper.Lerp(tailColor, endColor.Value, 1.0 - prog);
+                    segColor   = MediaColor.FromArgb((byte)(lerped.A * combinedFade), lerped.R, lerped.G, lerped.B);
+                }
+                else
+                {
+                    segColor = MediaColor.FromArgb((byte)(tailColor.A * combinedFade), tailColor.R, tailColor.G, tailColor.B);
+                }
+                var sb = new SolidColorBrush(segColor);
+                sb.Freeze();
+                dc.DrawGeometry(sb, null, quad);
             }
-
-            var n  = UnitNormal(a.Position, b.Position);
-            var p1 = a.Position + n * (wA * 0.5);
-            var p2 = a.Position - n * (wA * 0.5);
-            var p3 = b.Position - n * (wB * 0.5);
-            var p4 = b.Position + n * (wB * 0.5);
-
-            var brush = new SolidColorBrush(segColor);
-            brush.Freeze();
-
-            var quad = new StreamGeometry();
-            using (var ctx = quad.Open())
-            {
-                ctx.BeginFigure(p1, true, true);
-                ctx.LineTo(p2, true, false);
-                ctx.LineTo(p3, true, false);
-                ctx.LineTo(p4, true, false);
-            }
-            quad.Freeze();
-            dc.DrawGeometry(brush, null, quad);
         }
     }
 
@@ -185,6 +291,28 @@ public class LaserOverlayControl : FrameworkElement
 
     private void DrawHead(DrawingContext dc, WpfPoint pt)
     {
+        if (settings.DotUseCustomImage && _dotFrames.Count > 0)
+        {
+            var frame  = _dotFrames[_dotFrameIdx % _dotFrames.Count];
+            var halfH  = settings.DotSize * 6.0;
+            var aspect = (frame.PixelWidth > 0 && frame.PixelHeight > 0)
+                         ? (double)frame.PixelWidth / frame.PixelHeight
+                         : 1.0;
+            var halfW  = halfH * aspect;
+
+            // Rotate to follow movement; flip X instead of rotating past ±90° (keeps image right-side up)
+            var angle  = Math.Atan2(_moveDir.Y, _moveDir.X) * 180.0 / Math.PI;
+            bool flipX = Math.Abs(angle) > 90.0;
+            if (flipX) angle = -(angle > 0.0 ? 180.0 - angle : -180.0 - angle);
+
+            dc.PushTransform(new RotateTransform(angle, pt.X, pt.Y));
+            if (flipX) dc.PushTransform(new ScaleTransform(-1, 1, pt.X, pt.Y));
+            dc.DrawImage(frame, new Rect(pt.X - halfW, pt.Y - halfH, halfW * 2, halfH * 2));
+            if (flipX) dc.Pop();
+            dc.Pop();
+            return;
+        }
+
         var dotColor = ColorHelper.ParseColor(settings.DotColor);
         var dotSize  = settings.DotSize;
 
@@ -208,6 +336,118 @@ public class LaserOverlayControl : FrameworkElement
         dc.DrawEllipse(headBrush, null, pt, dotSize, dotSize);
     }
 
+    // ── Custom image loading ──────────────────────────────────────────────────
+
+    private void UnloadDotImage()
+    {
+        _gifTimer?.Stop();
+        _gifTimer      = null;
+        _dotFrames.Clear();
+        _dotFrameIdx   = 0;
+        _loadedDotPath = "";
+    }
+
+    private void LoadDotImage(string path)
+    {
+        UnloadDotImage();
+        _loadedDotPath = path;
+
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+
+        try
+        {
+            using var img  = System.Drawing.Image.FromFile(path);
+            var fd         = new System.Drawing.Imaging.FrameDimension(img.FrameDimensionsList[0]);
+            int frameCount = img.GetFrameCount(fd);
+
+            // Pre-decode all frames to BitmapSources
+            for (int i = 0; i < frameCount; i++)
+            {
+                img.SelectActiveFrame(fd, i);
+                using var bmp = new System.Drawing.Bitmap(img);
+                using var ms  = new MemoryStream();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                ms.Seek(0, SeekOrigin.Begin);
+                var frame = BitmapFrame.Create(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                frame.Freeze();
+                _dotFrames.Add(frame);
+            }
+
+            // Start animation timer for multi-frame GIFs
+            if (frameCount > 1)
+            {
+                int delayMs = 100;
+                try
+                {
+                    var prop = img.GetPropertyItem(0x5100);
+                    if (prop?.Value is not null)
+                        delayMs = Math.Max(20, BitConverter.ToInt32(prop.Value, 0) * 10);
+                }
+                catch { }
+
+                _gifTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(delayMs) };
+                _gifTimer.Tick += (_, _) =>
+                {
+                    _dotFrameIdx = (_dotFrameIdx + 1) % _dotFrames.Count;
+                    InvalidateVisual();
+                };
+                _gifTimer.Start();
+            }
+        }
+        catch { /* ignore unreadable image files */ }
+    }
+
+    private void UnloadTrailImage()
+    {
+        _trailImage      = null;
+        _loadedTrailPath = "";
+    }
+
+    private void LoadTrailImage(string path)
+    {
+        UnloadTrailImage();
+        _loadedTrailPath = path;
+
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+
+        try
+        {
+            var decoder = BitmapDecoder.Create(
+                new Uri(path, UriKind.Absolute),
+                BitmapCreateOptions.None,
+                BitmapCacheOption.OnLoad);
+            if (decoder.Frames.Count > 0)
+            {
+                var frame = decoder.Frames[0];
+                frame.Freeze();
+                _trailImage = frame;
+            }
+        }
+        catch { /* ignore unreadable image files */ }
+    }
+
+    // ── Rainbow trail ─────────────────────────────────────────────────────────
+
+    private static readonly MediaColor[] RainbowStops =
+    {
+        MediaColor.FromRgb(148,   0, 211), // Violet  — tail (oldest)
+        MediaColor.FromRgb( 75,   0, 130), // Indigo
+        MediaColor.FromRgb(  0,   0, 255), // Blue
+        MediaColor.FromRgb(  0, 200,   0), // Green
+        MediaColor.FromRgb(255, 255,   0), // Yellow
+        MediaColor.FromRgb(255, 127,   0), // Orange
+        MediaColor.FromRgb(255,   0,   0), // Red     — head (newest)
+    };
+
+    private static MediaColor SampleRainbow(double t)
+    {
+        // t: 0 = tail, 1 = head → maps to violet…red
+        double idx = t * (RainbowStops.Length - 1);
+        int lo = (int)idx;
+        int hi = Math.Min(lo + 1, RainbowStops.Length - 1);
+        return ColorHelper.Lerp(RainbowStops[lo], RainbowStops[hi], idx - lo);
+    }
+
     // ── Smoothing & Interpolation ─────────────────────────────────────────────
 
     private List<SmoothedPoint> BuildSmoothedPoints(DateTime now)
@@ -221,10 +461,10 @@ public class LaserOverlayControl : FrameworkElement
         }
 
         var butter = settings.ButterModeEnabled;
-        var lenDiv = butter ? 1.9 : 2.8;
+        var lenDiv = butter ? 1.9 : 2.4;
         var angDiv = butter ? 5.5 : 8.0;
-        var minSub = butter ? 10  : 4;
-        var maxSub = butter ? 56  : 24;
+        var minSub = butter ? 10  : 6;
+        var maxSub = butter ? 56  : 32;
 
         var expanded = new List<SmoothedPoint>(active.Count * 8)
         {
@@ -252,6 +492,48 @@ public class LaserOverlayControl : FrameworkElement
                 var ts        = LerpTime(t1, t2, t);
                 var ageRatio  = Math.Clamp((now - ts).TotalMilliseconds / trailLifetime.TotalMilliseconds, 0, 1);
                 expanded.Add(new SmoothedPoint(pos, ts, ageRatio));
+            }
+        }
+
+        // ── Laplacian smoothing pass (improves circle / curve quality) ──────────
+        for (int i = 1; i < expanded.Count - 1; i++)
+        {
+            var px = expanded[i - 1].Position.X * 0.2 + expanded[i].Position.X * 0.6 + expanded[i + 1].Position.X * 0.2;
+            var py = expanded[i - 1].Position.Y * 0.2 + expanded[i].Position.Y * 0.6 + expanded[i + 1].Position.Y * 0.2;
+            expanded[i] = new SmoothedPoint(new WpfPoint(px, py), expanded[i].Timestamp, expanded[i].AgeRatio);
+        }
+
+        // ── Wave effect ──────────────────────────────────────────────────────────
+        if (settings.WaveEnabled && settings.WaveAmplitude > 0.01 && expanded.Count > 2)
+        {
+            var totalLen = 0.0;
+            var lengths  = new double[expanded.Count];
+            lengths[0] = 0;
+            for (int i = 1; i < expanded.Count; i++)
+            {
+                totalLen  += Dist(expanded[i - 1].Position, expanded[i].Position);
+                lengths[i] = totalLen;
+            }
+
+            if (totalLen > 0.01)
+            {
+                var amp  = settings.WaveAmplitude;
+                var freq = settings.WaveFrequency;
+                for (int i = 1; i < expanded.Count - 1; i++)
+                {
+                    var dx  = expanded[i + 1].Position.X - expanded[i - 1].Position.X;
+                    var dy  = expanded[i + 1].Position.Y - expanded[i - 1].Position.Y;
+                    var len = Math.Sqrt(dx * dx + dy * dy);
+                    if (len < 0.001) continue;
+                    var nx     = -dy / len;
+                    var ny     =  dx / len;
+                    var phase  = lengths[i] / totalLen * freq * Math.PI * 2.0 + _wavePhase;
+                    var offset = amp * Math.Sin(phase);
+                    var p      = expanded[i];
+                    expanded[i] = new SmoothedPoint(
+                        new WpfPoint(p.Position.X + nx * offset, p.Position.Y + ny * offset),
+                        p.Timestamp, p.AgeRatio);
+                }
             }
         }
 
