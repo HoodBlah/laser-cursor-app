@@ -119,6 +119,17 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <!-- Editable value box for sliders -->
+        <Style x:Key="ValueBox" TargetType="TextBox">
+            <Setter Property="Background"        Value="#252535"/>
+            <Setter Property="Foreground"        Value="#DDDDEE"/>
+            <Setter Property="BorderBrush"       Value="#3A3A52"/>
+            <Setter Property="BorderThickness"   Value="1"/>
+            <Setter Property="Padding"           Value="2,1"/>
+            <Setter Property="FontSize"          Value="12"/>
+            <Setter Property="TextAlignment"     Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -162,11 +173,12 @@
                                 <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="44"/>
+                                        <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Slider x:Name="DotSizeSlider" Minimum="1" Maximum="20" TickFrequency="0.5"
                                             ValueChanged="DotSize_Changed" Grid.Column="0" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="DotSizeLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                    <TextBox x:Name="DotSizeBox" Style="{StaticResource ValueBox}" Grid.Column="1"
+                                             GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                                 </Grid>
                             </StackPanel>
                         </Grid>
@@ -204,11 +216,12 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="44"/>
+                                            <ColumnDefinition Width="52"/>
                                         </Grid.ColumnDefinitions>
                                         <Slider x:Name="DotGlowRadiusSlider" Minimum="4" Maximum="50" TickFrequency="1"
                                                 ValueChanged="DotGlowRadius_Changed" Grid.Column="0" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="DotGlowRadiusLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                        <TextBox x:Name="DotGlowRadiusBox" Style="{StaticResource ValueBox}" Grid.Column="1"
+                                                 GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                                     </Grid>
                                 </StackPanel>
                             </Grid>
@@ -261,29 +274,32 @@
                         <Separator/>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Length (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailLengthSlider" Minimum="80" Maximum="1200" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailLength_Changed"/>
-                            <TextBlock x:Name="TailLengthLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <TextBox x:Name="TailLengthBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                     GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                             <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailLength" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Thickness (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailThicknessSlider" Minimum="2" Maximum="30" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailThickness_Changed"/>
-                            <TextBlock x:Name="TailThicknessLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <TextBox x:Name="TailThicknessBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                     GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                             <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailThickness" ToolTip="Reset to baseline"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Taper" Style="{StaticResource RowLabel}" Grid.Column="0"/>
                             <Slider x:Name="TailTaperSlider" Minimum="0.2" Maximum="2.5" Grid.Column="1"
                                     VerticalAlignment="Center" ValueChanged="TailTaper_Changed"/>
-                            <TextBlock x:Name="TailTaperLabel" Style="{StaticResource ValueLabel}" Grid.Column="2"/>
+                            <TextBox x:Name="TailTaperBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                     GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                             <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailTaper" ToolTip="Reset to baseline"/>
                         </Grid>
 
@@ -330,11 +346,12 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="44"/>
+                                            <ColumnDefinition Width="52"/>
                                         </Grid.ColumnDefinitions>
                                         <Slider x:Name="TailGlowWidthSlider" Minimum="2" Maximum="30"
                                                 ValueChanged="TailGlowWidth_Changed" Grid.Column="0" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="TailGlowWidthLabel" Style="{StaticResource ValueLabel}" Grid.Column="1"/>
+                                        <TextBox x:Name="TailGlowWidthBox" Style="{StaticResource ValueBox}" Grid.Column="1"
+                                                 GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                                     </Grid>
                                 </StackPanel>
                             </Grid>

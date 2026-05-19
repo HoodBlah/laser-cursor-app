@@ -6,9 +6,12 @@ using System.Windows.Media;
 using LaserCursorAppPro.Helpers;
 using LaserCursorAppPro.Models;
 using LaserCursorAppPro.Services;
-using MediaColor = System.Windows.Media.Color;
-using MessageBox = System.Windows.MessageBox;
-using WpfPoint   = System.Windows.Point;
+using MediaColor  = System.Windows.Media.Color;
+using MessageBox  = System.Windows.MessageBox;
+using WpfPoint    = System.Windows.Point;
+using WpfTextBox  = System.Windows.Controls.TextBox;
+using WpfKey      = System.Windows.Input.Key;
+using WpfKeyArgs  = System.Windows.Input.KeyEventArgs;
 
 namespace LaserCursorAppPro.Options;
 
@@ -69,12 +72,12 @@ public partial class OptionsWindow : Window
 
     private void UpdateLabels(LaserSettings s)
     {
-        DotSizeLabel.Text         = $"{s.DotSize:F1}";
-        DotGlowRadiusLabel.Text   = $"{s.DotGlowRadius:F0}";
-        TailLengthLabel.Text      = $"{s.TailLengthMs:F0}";
-        TailThicknessLabel.Text   = $"{s.TailThickness:F1}";
-        TailTaperLabel.Text       = $"{s.TailTaperPower:F2}";
-        TailGlowWidthLabel.Text   = $"{s.TailGlowWidth:F1}";
+        DotSizeBox.Text        = $"{s.DotSize:F1}";
+        DotGlowRadiusBox.Text  = $"{s.DotGlowRadius:F0}";
+        TailLengthBox.Text     = $"{s.TailLengthMs:F0}";
+        TailThicknessBox.Text  = $"{s.TailThickness:F1}";
+        TailTaperBox.Text      = $"{s.TailTaperPower:F2}";
+        TailGlowWidthBox.Text  = $"{s.TailGlowWidth:F1}";
     }
 
     // ── Notify helper ─────────────────────────────────────────────────────────
@@ -99,7 +102,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.DotSize   = DotSizeSlider.Value;
-        DotSizeLabel.Text   = $"{_settings.DotSize:F1}";
+        DotSizeBox.Text      = $"{_settings.DotSize:F1}";
         Notify();
     }
 
@@ -122,7 +125,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.DotGlowRadius  = DotGlowRadiusSlider.Value;
-        DotGlowRadiusLabel.Text  = $"{_settings.DotGlowRadius:F0}";
+        DotGlowRadiusBox.Text    = $"{_settings.DotGlowRadius:F0}";
         Notify();
     }
 
@@ -154,7 +157,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.TailLengthMs  = TailLengthSlider.Value;
-        TailLengthLabel.Text    = $"{_settings.TailLengthMs:F0}";
+        TailLengthBox.Text      = $"{_settings.TailLengthMs:F0}";
         Notify();
     }
 
@@ -162,7 +165,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.TailThickness   = TailThicknessSlider.Value;
-        TailThicknessLabel.Text   = $"{_settings.TailThickness:F1}";
+        TailThicknessBox.Text     = $"{_settings.TailThickness:F1}";
         Notify();
     }
 
@@ -170,7 +173,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.TailTaperPower = TailTaperSlider.Value;
-        TailTaperLabel.Text      = $"{_settings.TailTaperPower:F2}";
+        TailTaperBox.Text        = $"{_settings.TailTaperPower:F2}";
         Notify();
     }
 
@@ -200,7 +203,7 @@ public partial class OptionsWindow : Window
     {
         if (_loading) return;
         _settings.TailGlowWidth  = TailGlowWidthSlider.Value;
-        TailGlowWidthLabel.Text  = $"{_settings.TailGlowWidth:F1}";
+        TailGlowWidthBox.Text    = $"{_settings.TailGlowWidth:F1}";
         Notify();
     }
 
@@ -219,7 +222,7 @@ public partial class OptionsWindow : Window
     {
         _loading = true; DotSizeSlider.Value = _baseline.DotSize; _loading = false;
         _settings.DotSize = _baseline.DotSize;
-        DotSizeLabel.Text = $"{_baseline.DotSize:F1}";
+        DotSizeBox.Text   = $"{_baseline.DotSize:F1}";
         Notify();
     }
 
@@ -243,8 +246,8 @@ public partial class OptionsWindow : Window
     private void ResetDotGlowRadius(object s, RoutedEventArgs e)
     {
         _loading = true; DotGlowRadiusSlider.Value = _baseline.DotGlowRadius; _loading = false;
-        _settings.DotGlowRadius   = _baseline.DotGlowRadius;
-        DotGlowRadiusLabel.Text   = $"{_baseline.DotGlowRadius:F1}";
+        _settings.DotGlowRadius  = _baseline.DotGlowRadius;
+        DotGlowRadiusBox.Text    = $"{_baseline.DotGlowRadius:F1}";
         Notify();
     }
 
@@ -277,16 +280,16 @@ public partial class OptionsWindow : Window
     private void ResetTailLength(object s, RoutedEventArgs e)
     {
         _loading = true; TailLengthSlider.Value = _baseline.TailLengthMs; _loading = false;
-        _settings.TailLengthMs  = _baseline.TailLengthMs;
-        TailLengthLabel.Text    = $"{_baseline.TailLengthMs:F0}";
+        _settings.TailLengthMs = _baseline.TailLengthMs;
+        TailLengthBox.Text     = $"{_baseline.TailLengthMs:F0}";
         Notify();
     }
 
     private void ResetTailThickness(object s, RoutedEventArgs e)
     {
         _loading = true; TailThicknessSlider.Value = _baseline.TailThickness; _loading = false;
-        _settings.TailThickness  = _baseline.TailThickness;
-        TailThicknessLabel.Text  = $"{_baseline.TailThickness:F1}";
+        _settings.TailThickness = _baseline.TailThickness;
+        TailThicknessBox.Text   = $"{_baseline.TailThickness:F1}";
         Notify();
     }
 
@@ -294,7 +297,7 @@ public partial class OptionsWindow : Window
     {
         _loading = true; TailTaperSlider.Value = _baseline.TailTaperPower; _loading = false;
         _settings.TailTaperPower = _baseline.TailTaperPower;
-        TailTaperLabel.Text      = $"{_baseline.TailTaperPower:F2}";
+        TailTaperBox.Text        = $"{_baseline.TailTaperPower:F2}";
         Notify();
     }
 
@@ -326,7 +329,51 @@ public partial class OptionsWindow : Window
     {
         _loading = true; TailGlowWidthSlider.Value = _baseline.TailGlowWidth; _loading = false;
         _settings.TailGlowWidth = _baseline.TailGlowWidth;
-        TailGlowWidthLabel.Text = $"{_baseline.TailGlowWidth:F1}";
+        TailGlowWidthBox.Text   = $"{_baseline.TailGlowWidth:F1}";
+        Notify();
+    }
+
+    // ── Value TextBox handlers ────────────────────────────────────────────────
+
+    private void ValueBox_GotFocus(object sender, RoutedEventArgs e) =>
+        ((WpfTextBox)sender).SelectAll();
+
+    private void ValueBox_KeyDown(object sender, WpfKeyArgs e)
+    {
+        if (e.Key == WpfKey.Enter) CommitValueBox((WpfTextBox)sender);
+    }
+
+    private void ValueBox_LostFocus(object sender, RoutedEventArgs e) =>
+        CommitValueBox((WpfTextBox)sender);
+
+    private void CommitValueBox(WpfTextBox box)
+    {
+        if (!double.TryParse(box.Text, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var v))
+        {
+            // revert to current setting on bad input
+            if      (box == DotSizeBox)       box.Text = $"{_settings.DotSize:F1}";
+            else if (box == DotGlowRadiusBox) box.Text = $"{_settings.DotGlowRadius:F0}";
+            else if (box == TailLengthBox)    box.Text = $"{_settings.TailLengthMs:F0}";
+            else if (box == TailThicknessBox) box.Text = $"{_settings.TailThickness:F1}";
+            else if (box == TailTaperBox)     box.Text = $"{_settings.TailTaperPower:F2}";
+            else if (box == TailGlowWidthBox) box.Text = $"{_settings.TailGlowWidth:F1}";
+            return;
+        }
+
+        Slider slider; string fmt; Action<double> apply;
+        if      (box == DotSizeBox)       { slider = DotSizeSlider;       fmt = "F1"; apply = x => _settings.DotSize        = x; }
+        else if (box == DotGlowRadiusBox) { slider = DotGlowRadiusSlider; fmt = "F0"; apply = x => _settings.DotGlowRadius  = x; }
+        else if (box == TailLengthBox)    { slider = TailLengthSlider;    fmt = "F0"; apply = x => _settings.TailLengthMs   = x; }
+        else if (box == TailThicknessBox) { slider = TailThicknessSlider; fmt = "F1"; apply = x => _settings.TailThickness  = x; }
+        else if (box == TailTaperBox)     { slider = TailTaperSlider;     fmt = "F2"; apply = x => _settings.TailTaperPower = x; }
+        else if (box == TailGlowWidthBox) { slider = TailGlowWidthSlider; fmt = "F1"; apply = x => _settings.TailGlowWidth  = x; }
+        else return;
+
+        v = Math.Clamp(v, slider.Minimum, slider.Maximum);
+        _loading = true; slider.Value = v; _loading = false;
+        apply(v);
+        box.Text = v.ToString(fmt);
         Notify();
     }
 
