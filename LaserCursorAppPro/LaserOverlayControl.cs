@@ -34,9 +34,14 @@ public class LaserOverlayControl : FrameworkElement
     private string        _loadedTrailPath = "";
     // ── Movement direction for dot rotation ───────────────────────────────
     private Vector _moveDir = new Vector(1, 0);
-    // ── Wave animation ────────────────────────────────────────────────────
-    private double   _wavePhase    = 0.0;
-    private DateTime _lastWaveTime = DateTime.MinValue;    // ── Public API ────────────────────────────────────────────────────────────
+    // ── Wave animation ─────────────────────────────────────────────────────
+    // Phase accumulates based on cursor travel distance so adjacent recorded
+    // points have nearly identical offsets (no shaking) and painted positions
+    // are frozen in space forever (nyan-cat-style stationary rainbow).
+    private double    _waveDistPhase         = 0.0;
+    private double    _wavePhaseAtLastRecord  = 0.0;  // phase value when last point was recorded
+    private WpfPoint? _prevCursorForWave;
+    private WpfPoint? _lastRecordedCursor;    // ── Public API ────────────────────────────────────────────────────────────
 
     public void ApplySettings(LaserSettings s)
     {
@@ -71,32 +76,21 @@ public class LaserOverlayControl : FrameworkElement
 
         latestCursor = ApplyAdaptiveSmoothing(position.Value, now);
 
-        var butter          = settings.ButterModeEnabled;
-        var minDist         = butter ? 0.35 : 0.65;
+        var butter           = settings.ButterModeEnabled;
+        var minDist          = butter ? 0.35 : 0.65;
         var sampleIntervalMs = butter ? 4 : 10;
 
-        if (points.Count == 0 || Dist(points[^1].Position, latestCursor.Value) > minDist)
+        // Accumulate travel distance and update movement direction from the raw
+        // un-waved cursor. Using _prevCursorForWave (not points[]) avoids direction
+        // contamination from wave offsets baked into recorded positions.
+        if (_prevCursorForWave is not null)
         {
-            points.Add(new TrailPoint(latestCursor.Value, now));
-            lastSampleTime = now;
-        }
-        else if (now - lastSampleTime > TimeSpan.FromMilliseconds(sampleIntervalMs))
-        {
-            points.Add(new TrailPoint(latestCursor.Value, now));
-            lastSampleTime = now;
-        }
-
-        TrimPoints(now);
-
-        // Smooth movement direction for dot rotation
-        if (points.Count >= 3)
-        {
-            int back = Math.Min(4, points.Count - 1);
-            var recent = points[^1].Position - points[^(back + 1)].Position;
-            if (recent.Length > 0.5)
+            var delta     = latestCursor.Value - _prevCursorForWave.Value;
+            var deltaDist = delta.Length;
+            _waveDistPhase += deltaDist;
+            if (deltaDist > 0.5)
             {
-                var rLen  = recent.Length;
-                var rNorm = new Vector(recent.X / rLen, recent.Y / rLen);
+                var rNorm = new Vector(delta.X / deltaDist, delta.Y / deltaDist);
                 _moveDir  = new Vector(
                     _moveDir.X + (rNorm.X - _moveDir.X) * 0.25,
                     _moveDir.Y + (rNorm.Y - _moveDir.Y) * 0.25);
@@ -104,7 +98,60 @@ public class LaserOverlayControl : FrameworkElement
                 if (mLen > 0.001) _moveDir = new Vector(_moveDir.X / mLen, _moveDir.Y / mLen);
             }
         }
+        _prevCursorForWave = latestCursor.Value;
 
+        // Fixed-distance recording with sub-frame interpolation.
+        // When the cursor jumps a large distance in one hardware polling interval,
+        // multiple evenly-spaced anchors are inserted along the path so wave
+        // anchor density is constant regardless of cursor speed.
+        bool   isWave  = settings.WaveEnabled && settings.WaveAmplitude > 0.01;
+        double sampleD = isWave ? 8.0 : minDist;
+
+        bool shouldRecord = _lastRecordedCursor is null
+                            || Dist(_lastRecordedCursor.Value, latestCursor.Value) >= sampleD
+                            || now - lastSampleTime > TimeSpan.FromMilliseconds(sampleIntervalMs);
+        if (shouldRecord)
+        {
+            var    from   = _lastRecordedCursor;
+            var    to     = latestCursor.Value;
+
+            if (isWave && from is not null)
+            {
+                double segDx  = to.X - from.Value.X;
+                double segDy  = to.Y - from.Value.Y;
+                double segLen = Math.Sqrt(segDx * segDx + segDy * segDy);
+
+                // Exact local perpendicular — no EMA lag, always correct at any speed
+                double nx = segLen > 0.1 ? -segDy / segLen : -_moveDir.Y;
+                double ny = segLen > 0.1 ?  segDx / segLen :  _moveDir.X;
+
+                // Subdivide large gaps so every wave cycle has ~10 anchors
+                int    n         = Math.Max(1, (int)(segLen / sampleD));
+                double phaseSpan = _waveDistPhase - _wavePhaseAtLastRecord;
+
+                for (int i = 1; i <= n; i++)
+                {
+                    double t      = i / (double)n;
+                    double iphase = _wavePhaseAtLastRecord + phaseSpan * t;
+                    double woff   = settings.WaveAmplitude
+                                    * Math.Sin(iphase * settings.WaveFrequency / 200.0 * Math.PI * 2.0);
+                    var ipos = new WpfPoint(from.Value.X + segDx * t, from.Value.Y + segDy * t);
+                    points.Add(new TrailPoint(
+                        new WpfPoint(ipos.X + nx * woff, ipos.Y + ny * woff), now));
+                }
+            }
+            else
+            {
+                // Non-wave mode or very first point
+                points.Add(new TrailPoint(to, now));
+            }
+
+            _lastRecordedCursor    = to;
+            _wavePhaseAtLastRecord = _waveDistPhase;
+            lastSampleTime         = now;
+        }
+
+        TrimPoints(now);
         InvalidateVisual();
     }
 
@@ -121,19 +168,6 @@ public class LaserOverlayControl : FrameworkElement
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
-
-        if (settings.WaveEnabled)
-        {
-            var wNow = DateTime.UtcNow;
-            if (_lastWaveTime != DateTime.MinValue)
-                _wavePhase += (wNow - _lastWaveTime).TotalSeconds * 4.0; // 4 rad/sec travel speed
-            _lastWaveTime = wNow;
-        }
-        else
-        {
-            _wavePhase = 0.0;
-            _lastWaveTime = DateTime.MinValue;
-        }
 
         if (points.Count > 1)
         {
@@ -461,10 +495,13 @@ public class LaserOverlayControl : FrameworkElement
         }
 
         var butter = settings.ButterModeEnabled;
-        var lenDiv = butter ? 1.9 : 2.4;
+        var isWave = settings.WaveEnabled;
+        // Wave mode: points are already 8 px apart with the wave shape baked in,
+        // so heavy Catmull-Rom expansion is wasteful — 2–3 subs is plenty.
+        var lenDiv = butter ? 1.9 : (isWave ? 8.0 : 2.4);
         var angDiv = butter ? 5.5 : 8.0;
-        var minSub = butter ? 10  : 6;
-        var maxSub = butter ? 56  : 32;
+        var minSub = butter ? 10  : (isWave ? 2 : 6);
+        var maxSub = butter ? 56  : (isWave ? 14 : 32);
 
         var expanded = new List<SmoothedPoint>(active.Count * 8)
         {
@@ -503,40 +540,6 @@ public class LaserOverlayControl : FrameworkElement
             expanded[i] = new SmoothedPoint(new WpfPoint(px, py), expanded[i].Timestamp, expanded[i].AgeRatio);
         }
 
-        // ── Wave effect ──────────────────────────────────────────────────────────
-        if (settings.WaveEnabled && settings.WaveAmplitude > 0.01 && expanded.Count > 2)
-        {
-            var totalLen = 0.0;
-            var lengths  = new double[expanded.Count];
-            lengths[0] = 0;
-            for (int i = 1; i < expanded.Count; i++)
-            {
-                totalLen  += Dist(expanded[i - 1].Position, expanded[i].Position);
-                lengths[i] = totalLen;
-            }
-
-            if (totalLen > 0.01)
-            {
-                var amp  = settings.WaveAmplitude;
-                var freq = settings.WaveFrequency;
-                for (int i = 1; i < expanded.Count - 1; i++)
-                {
-                    var dx  = expanded[i + 1].Position.X - expanded[i - 1].Position.X;
-                    var dy  = expanded[i + 1].Position.Y - expanded[i - 1].Position.Y;
-                    var len = Math.Sqrt(dx * dx + dy * dy);
-                    if (len < 0.001) continue;
-                    var nx     = -dy / len;
-                    var ny     =  dx / len;
-                    var phase  = lengths[i] / totalLen * freq * Math.PI * 2.0 + _wavePhase;
-                    var offset = amp * Math.Sin(phase);
-                    var p      = expanded[i];
-                    expanded[i] = new SmoothedPoint(
-                        new WpfPoint(p.Position.X + nx * offset, p.Position.Y + ny * offset),
-                        p.Timestamp, p.AgeRatio);
-                }
-            }
-        }
-
         return expanded;
     }
 
@@ -566,6 +569,10 @@ public class LaserOverlayControl : FrameworkElement
     {
         var cutoff = now - trailLifetime;
         points.RemoveAll(p => p.Timestamp < cutoff);
+        // Hard cap: prevent runaway point growth during very fast movement
+        const int MaxPoints = 400;
+        if (points.Count > MaxPoints)
+            points.RemoveRange(0, points.Count - MaxPoints);
     }
 
     // ── Math helpers ──────────────────────────────────────────────────────────
