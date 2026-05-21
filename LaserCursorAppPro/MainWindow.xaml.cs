@@ -38,6 +38,22 @@ public partial class MainWindow : Window
     private DateTime            _lastLeftClick      = DateTime.MinValue;
     private int                 _doubleClickDetectMs = 350;
 
+    // ── Keyboard hook ────────────────────────────────────────────────────────────
+    private const int WH_KEYBOARD_LL = 13;
+    private const int WM_KEYDOWN     = 0x0100;
+    private const int WM_KEYUP       = 0x0101;
+    private const int WM_SYSKEYDOWN  = 0x0104;
+    private const int WM_SYSKEYUP    = 0x0105;
+    [StructLayout(LayoutKind.Sequential)]
+    private struct KBDLLHOOKSTRUCT { public uint vkCode, scanCode, flags, time; public IntPtr dwExtraInfo; }
+    private IntPtr             _keyboardHook;
+    private LowLevelMouseProc? _keyProc;
+    private DateTime           _lastDrawKeyTap  = DateTime.MinValue;
+    private bool               _drawKeyDown     = false;
+    private bool               _drawModeEnabled = true;
+    private int                _drawModeVKey    = 0xA2;  // VK_LCONTROL
+    private int                _drawModeClearMs = 400;
+
     private static readonly IntPtr HWND_TOPMOST = new(-1);
     private const int    GWL_EXSTYLE        = -20;
     private const int    WS_EX_TRANSPARENT  = 0x00000020;
@@ -55,7 +71,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Loaded  += OnLoaded;
-        Closing += (_, _) => UninstallMouseHook();
+        Closing += (_, _) => { UninstallMouseHook(); UninstallKeyboardHook(); };
         SystemEvents.DisplaySettingsChanged += (_, _) => FitToVirtualDesktop();
     }
 
@@ -65,13 +81,19 @@ public partial class MainWindow : Window
         FitToVirtualDesktop();
         CompositionTarget.Rendering += OnRendering;
         InstallMouseHook();
+        InstallKeyboardHook();
     }
 
     public void ApplySettings(LaserSettings s)
     {
         _doubleClickDetectMs = s.DoubleClickDetectMs;
+        _drawModeEnabled     = s.DrawModeEnabled;
+        _drawModeVKey        = s.DrawModeVKey;
+        _drawModeClearMs     = s.DrawModeClearDoubleTapMs;
         OverlayControl.ApplySettings(s);
     }
+
+    public void ClearDrawnLines() => OverlayControl.ClearDrawnStrokes();
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
@@ -122,6 +144,58 @@ public partial class MainWindow : Window
             UnhookWindowsHookEx(_mouseHook);
             _mouseHook = IntPtr.Zero;
         }
+    }
+
+    private void InstallKeyboardHook()
+    {
+        _keyProc = KeyboardHookCallback;
+        using var proc = System.Diagnostics.Process.GetCurrentProcess();
+        _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyProc,
+                                         GetModuleHandle(proc.MainModule?.ModuleName), 0);
+    }
+
+    private void UninstallKeyboardHook()
+    {
+        if (_keyboardHook != IntPtr.Zero)
+        {
+            UnhookWindowsHookEx(_keyboardHook);
+            _keyboardHook = IntPtr.Zero;
+        }
+    }
+
+    private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode >= 0 && _drawModeEnabled)
+        {
+            var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+            if (kb.vkCode == (uint)_drawModeVKey)
+            {
+                bool isDown = wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN;
+                bool isUp   = wParam == (IntPtr)WM_KEYUP   || wParam == (IntPtr)WM_SYSKEYUP;
+
+                if (isDown && !_drawKeyDown)
+                {
+                    _drawKeyDown = true;
+                    var now = DateTime.UtcNow;
+                    if ((now - _lastDrawKeyTap).TotalMilliseconds <= _drawModeClearMs)
+                    {
+                        _lastDrawKeyTap = DateTime.MinValue; // reset to prevent triple-tap
+                        Dispatcher.BeginInvoke(() => OverlayControl.ClearDrawnStrokes());
+                    }
+                    else
+                    {
+                        _lastDrawKeyTap = now;
+                        Dispatcher.BeginInvoke(() => OverlayControl.SetDrawMode(true));
+                    }
+                }
+                else if (isUp && _drawKeyDown)
+                {
+                    _drawKeyDown = false;
+                    Dispatcher.BeginInvoke(() => OverlayControl.SetDrawMode(false));
+                }
+            }
+        }
+        return CallNextHookEx(_keyboardHook, nCode, wParam, lParam);
     }
 
     private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)

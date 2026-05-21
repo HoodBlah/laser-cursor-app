@@ -1,6 +1,7 @@
 # Standard .NET ignores
 bin/
 obj/
+publish/
 .vs/
 *.user
 *.userosscache

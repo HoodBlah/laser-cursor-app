@@ -106,5 +106,10 @@ public class LaserSettings
     public double DoubleClickMultiplier { get; set; } = 1.8;
     public int    DoubleClickDetectMs   { get; set; } = 350;
 
+    // ── Draw mode ─────────────────────────────────────────────────────────
+    public bool DrawModeEnabled          { get; set; } = true;
+    public int  DrawModeVKey             { get; set; } = 0xA2;  // VK_LCONTROL
+    public int  DrawModeClearDoubleTapMs { get; set; } = 400;
+
     public LaserSettings Clone() => (LaserSettings)MemberwiseClone();
 }

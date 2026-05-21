@@ -54,6 +54,10 @@ public class LaserOverlayControl : FrameworkElement
     private BitmapSource? _clickSwapImage;
     private string        _loadedClickSwapPath = "";
     private DateTime      _clickSwapUntil      = DateTime.MinValue;
+    // ── Draw mode ─────────────────────────────────────────────────────────────
+    private readonly List<List<WpfPoint>> _drawnStrokes = new();
+    private List<WpfPoint>?               _currentStroke = null;
+    private bool                          _drawModeActive = false;
     // ── Public API ─────────────────────────────────────────────────────────────
 
     public void ApplySettings(LaserSettings s)
@@ -161,14 +165,18 @@ public class LaserOverlayControl : FrameworkElement
                     double woff   = settings.WaveAmplitude
                                     * Math.Sin(iphase * settings.WaveFrequency / 200.0 * Math.PI * 2.0);
                     var ipos = new WpfPoint(from.Value.X + segDx * t, from.Value.Y + segDy * t);
-                    points.Add(new TrailPoint(
-                        new WpfPoint(ipos.X + nx * woff, ipos.Y + ny * woff), now));
+                    var wavePoint = new WpfPoint(ipos.X + nx * woff, ipos.Y + ny * woff);
+                    points.Add(new TrailPoint(wavePoint, now));
+                    if (_drawModeActive && _currentStroke != null)
+                        _currentStroke.Add(wavePoint);
                 }
             }
             else
             {
                 // Non-wave mode or very first point
                 points.Add(new TrailPoint(to, now));
+                if (_drawModeActive && _currentStroke != null)
+                    _currentStroke.Add(to);
             }
 
             _lastRecordedCursor    = to;
@@ -177,6 +185,31 @@ public class LaserOverlayControl : FrameworkElement
         }
 
         TrimPoints(now);
+        InvalidateVisual();
+    }
+
+    public void SetDrawMode(bool active)
+    {
+        if (!settings.DrawModeEnabled) return;
+        if (active == _drawModeActive) return;
+        _drawModeActive = active;
+        if (active)
+        {
+            _currentStroke = new List<WpfPoint>();
+        }
+        else
+        {
+            if (_currentStroke is { Count: >= 2 })
+                _drawnStrokes.Add(_currentStroke);
+            _currentStroke = null;
+        }
+    }
+
+    public void ClearDrawnStrokes()
+    {
+        _drawnStrokes.Clear();
+        _currentStroke = null;
+        _drawModeActive = false;
         InvalidateVisual();
     }
 
@@ -204,6 +237,7 @@ public class LaserOverlayControl : FrameworkElement
         }
 
         DrawClickEffects(dc);
+        DrawPersistentStrokes(dc);
 
         if (opacity > 0.001)
         {
@@ -694,6 +728,32 @@ public class LaserOverlayControl : FrameworkElement
             result[i]      = (s * Math.Cos(ang), s * Math.Sin(ang));
         }
         return result;
+    }
+
+    private void DrawPersistentStrokes(DrawingContext dc)
+    {
+        if (_drawnStrokes.Count == 0 && (_currentStroke == null || _currentStroke.Count < 2)) return;
+
+        var tailColor = ColorHelper.ParseColor(settings.TailColor);
+        var penWidth  = Math.Max(0.5, settings.TailThickness);
+        var brush     = new SolidColorBrush(tailColor);
+        brush.Freeze();
+        var pen = new System.Windows.Media.Pen(brush, penWidth)
+            { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round };
+        pen.Freeze();
+
+        foreach (var stroke in _drawnStrokes)
+        {
+            if (stroke.Count < 2) continue;
+            for (int i = 1; i < stroke.Count; i++)
+                dc.DrawLine(pen, stroke[i - 1], stroke[i]);
+        }
+
+        if (_currentStroke != null && _currentStroke.Count >= 2)
+        {
+            for (int i = 1; i < _currentStroke.Count; i++)
+                dc.DrawLine(pen, _currentStroke[i - 1], _currentStroke[i]);
+        }
     }
 
     private void DrawClickEffects(DrawingContext dc)

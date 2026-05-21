@@ -112,6 +112,11 @@ public partial class OptionsWindow : Window
         TrailPatternSpeedSlider.Value     = s.TrailPatternSpeed;
         TrailPatternIntensitySlider.Value = s.TrailPatternIntensity;
 
+        DrawModeCheck.IsChecked         = s.DrawModeEnabled;
+        DrawModePanel.IsEnabled         = s.DrawModeEnabled;
+        DrawModeKeyCombo.SelectedIndex  = VKeyToComboIndex(s.DrawModeVKey);
+        DrawModeClearMsSlider.Value     = s.DrawModeClearDoubleTapMs;
+
         ClickEffectCheck.IsChecked           = s.ClickEffectEnabled;
         ClickEffectPanel.IsEnabled           = s.ClickEffectEnabled;
         ClickEffectStyleCombo.SelectedIndex  = s.ClickEffectStyle;
@@ -192,6 +197,7 @@ public partial class OptionsWindow : Window
         ClickSwapSizeSlider.Value = s.ClickSwapSize;
         ClickSwapSizeBox.Text     = $"{s.ClickSwapSize:F0}";
         AutoHideDelayBox.Text     = $"{s.AutoHideDelayMs:F0}";
+        DrawModeClearMsBox.Text   = $"{s.DrawModeClearDoubleTapMs:F0}";
     }
 
     // ── Notify helper ─────────────────────────────────────────────────────────
@@ -1118,6 +1124,74 @@ public partial class OptionsWindow : Window
         _loading = true; TrailPatternIntensitySlider.Value = _baseline.TrailPatternIntensity; _loading = false;
         _settings.TrailPatternIntensity = _baseline.TrailPatternIntensity;
         TrailPatternIntensityBox.Text    = $"{_baseline.TrailPatternIntensity:F2}";
+        Notify();
+    }
+
+    // ── Draw mode handlers ────────────────────────────────────────────────────
+
+    private static readonly int[] DrawModeVKeys =
+    {
+        0xA2, 0xA3, 0xA4, 0xA5, 0xA0, 0xA1, 0x14, 0x09,
+        0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B
+    };
+
+    private static int VKeyToComboIndex(int vkey)
+    {
+        var idx = Array.IndexOf(DrawModeVKeys, vkey);
+        return idx >= 0 ? idx : 0;
+    }
+
+    private void DrawMode_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.DrawModeEnabled = DrawModeCheck.IsChecked == true;
+        DrawModePanel.IsEnabled   = _settings.DrawModeEnabled;
+        Notify();
+    }
+
+    private void DrawModeKey_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        var idx = DrawModeKeyCombo.SelectedIndex;
+        if (idx >= 0 && idx < DrawModeVKeys.Length)
+            _settings.DrawModeVKey = DrawModeVKeys[idx];
+        Notify();
+    }
+
+    private void DrawModeClearMs_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.DrawModeClearDoubleTapMs = (int)Math.Round(DrawModeClearMsSlider.Value);
+        DrawModeClearMsBox.Text             = $"{_settings.DrawModeClearDoubleTapMs:F0}";
+        Notify();
+    }
+
+    private void ClearDrawnLines_Click(object sender, RoutedEventArgs e)
+    {
+        if (System.Windows.Application.Current.MainWindow is MainWindow mw)
+            mw.ClearDrawnLines();
+    }
+
+    private void ResetDrawModeEnabled(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DrawModeCheck.IsChecked = _baseline.DrawModeEnabled; _loading = false;
+        _settings.DrawModeEnabled = _baseline.DrawModeEnabled;
+        DrawModePanel.IsEnabled   = _baseline.DrawModeEnabled;
+        Notify();
+    }
+
+    private void ResetDrawModeKey(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DrawModeKeyCombo.SelectedIndex = VKeyToComboIndex(_baseline.DrawModeVKey); _loading = false;
+        _settings.DrawModeVKey = _baseline.DrawModeVKey;
+        Notify();
+    }
+
+    private void ResetDrawModeClearMs(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DrawModeClearMsSlider.Value = _baseline.DrawModeClearDoubleTapMs; _loading = false;
+        _settings.DrawModeClearDoubleTapMs = _baseline.DrawModeClearDoubleTapMs;
+        DrawModeClearMsBox.Text             = $"{_baseline.DrawModeClearDoubleTapMs:F0}";
         Notify();
     }
 
