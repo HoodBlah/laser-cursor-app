@@ -41,7 +41,20 @@ public class LaserOverlayControl : FrameworkElement
     private double    _waveDistPhase         = 0.0;
     private double    _wavePhaseAtLastRecord  = 0.0;  // phase value when last point was recorded
     private WpfPoint? _prevCursorForWave;
-    private WpfPoint? _lastRecordedCursor;    // ── Public API ────────────────────────────────────────────────────────────
+    private WpfPoint? _lastRecordedCursor;
+    // ── Auto-hide ─────────────────────────────────────────────────────────────
+    private WpfPoint? _prevCursorForHide;
+    private DateTime  _lastMoveTime = DateTime.UtcNow;
+    // ── Click effects ─────────────────────────────────────────────────────────
+    private readonly List<ClickEffect> _clickEffects = new();
+    // ── Click particle image ──────────────────────────────────────────────────
+    private BitmapSource? _clickParticleImage;
+    private string        _loadedParticleImagePath = "";
+    // ── Click cursor swap ────────────────────────────────────────────────────────
+    private BitmapSource? _clickSwapImage;
+    private string        _loadedClickSwapPath = "";
+    private DateTime      _clickSwapUntil      = DateTime.MinValue;
+    // ── Public API ─────────────────────────────────────────────────────────────
 
     public void ApplySettings(LaserSettings s)
     {
@@ -57,6 +70,11 @@ public class LaserOverlayControl : FrameworkElement
             LoadTrailImage(s.TailImagePath);
         else if (!s.TailImageMode)
             UnloadTrailImage();
+
+        if (s.ClickParticleImagePath != _loadedParticleImagePath)
+            LoadClickParticleImage(s.ClickParticleImagePath);
+        if (s.ClickSwapImagePath != _loadedClickSwapPath)
+            LoadClickSwapImage(s.ClickSwapImagePath);
 
         InvalidateVisual();
     }
@@ -99,6 +117,13 @@ public class LaserOverlayControl : FrameworkElement
             }
         }
         _prevCursorForWave = latestCursor.Value;
+
+        // Track last movement time for auto-hide
+        if (_prevCursorForHide is null || Dist(_prevCursorForHide.Value, latestCursor.Value) > 1.0)
+        {
+            _prevCursorForHide = latestCursor.Value;
+            _lastMoveTime      = now;
+        }
 
         // Fixed-distance recording with sub-frame interpolation.
         // When the cursor jumps a large distance in one hardware polling interval,
@@ -169,19 +194,39 @@ public class LaserOverlayControl : FrameworkElement
     {
         base.OnRender(dc);
 
-        if (points.Count > 1)
+        double opacity = 1.0;
+        if (settings.AutoHideEnabled)
         {
-            var smoothed = BuildSmoothedPoints(DateTime.UtcNow);
-            if (smoothed.Count >= 2)
-            {
-                if (settings.TailGlowEnabled)
-                    DrawTrailGlow(dc, smoothed);
-                DrawTrail(dc, smoothed);
-            }
+            var idleMs = (DateTime.UtcNow - _lastMoveTime).TotalMilliseconds;
+            const double FadeMs = 600.0;
+            opacity = idleMs < settings.AutoHideDelayMs ? 1.0
+                    : Math.Clamp(1.0 - (idleMs - settings.AutoHideDelayMs) / FadeMs, 0.0, 1.0);
         }
 
-        if (latestCursor is not null)
-            DrawHead(dc, latestCursor.Value);
+        DrawClickEffects(dc);
+
+        if (opacity > 0.001)
+        {
+            bool hasOpacity = opacity < 0.999;
+            if (hasOpacity) dc.PushOpacity(opacity);
+
+            if (points.Count > 1)
+            {
+                var smoothed = BuildSmoothedPoints(DateTime.UtcNow);
+                if (smoothed.Count >= 2)
+                {
+                    if (settings.TailGlowEnabled)
+                        DrawTrailGlow(dc, smoothed);
+                    DrawTrail(dc, smoothed);
+                    DrawTrailPattern(dc, smoothed);
+                }
+            }
+
+            if (latestCursor is not null)
+                DrawHead(dc, latestCursor.Value);
+
+            if (hasOpacity) dc.Pop();
+        }
     }
 
     private void DrawTrail(DrawingContext dc, List<SmoothedPoint> sp)
@@ -194,6 +239,7 @@ public class LaserOverlayControl : FrameworkElement
                           ? (MediaColor?)ColorHelper.ParseColor(settings.TailGradientEndColor)
                           : null;
         var count       = sp.Count;
+        if (count < 2) return;
 
         for (var i = 1; i < count; i++)
         {
@@ -202,12 +248,33 @@ public class LaserOverlayControl : FrameworkElement
 
             if (b.Timestamp - a.Timestamp > gapLifetime) continue;
 
-            var prog = i / (double)(count - 1);
-            var combinedFade = Math.Clamp(Math.Pow(prog, power) * (1.0 - b.AgeRatio), 0.0, 1.0);
-            if (combinedFade <= 0.01) continue;
+            var prog  = i / (double)(count - 1);
+            var progA = (i - 1) / (double)(count - 1);
+            var fadeB = Math.Clamp(Math.Pow(prog,  power) * (1.0 - b.AgeRatio), 0.0, 1.0);
+            var fadeA = Math.Clamp(Math.Pow(progA, power) * (1.0 - a.AgeRatio), 0.0, 1.0);
+            if (fadeB <= 0.01) continue;
 
-            var wA = minW + (maxW - minW) * Math.Clamp(Math.Pow((i - 1) / (double)(count - 1), power) * (1.0 - a.AgeRatio), 0, 1);
-            var wB = minW + (maxW - minW) * Math.Clamp(Math.Pow(prog, power) * (1.0 - b.AgeRatio), 0, 1);
+            double wA, wB, alphaFactor;
+            switch (settings.TailFadeStyle)
+            {
+                case 0: // Alpha only — full width, only opacity fades
+                    wA          = maxW;
+                    wB          = maxW;
+                    alphaFactor = fadeB;
+                    break;
+                case 2: // Glow-dissolve — width expands as trail ages, softer opacity
+                    wA          = minW + (maxW - minW) * (1.0 + 1.4 * (1.0 - fadeA));
+                    wB          = minW + (maxW - minW) * (1.0 + 1.4 * (1.0 - fadeB));
+                    alphaFactor = fadeB * 0.5;
+                    break;
+                default: // 1 = Thin-and-fade (default) — both taper simultaneously
+                    wA          = minW + (maxW - minW) * fadeA;
+                    wB          = minW + (maxW - minW) * fadeB;
+                    alphaFactor = fadeB;
+                    break;
+            }
+            alphaFactor = Math.Clamp(alphaFactor, 0, 1);
+            if (alphaFactor <= 0.01) continue;
 
             if (Dist(a.Position, b.Position) < 0.01) continue;
 
@@ -220,7 +287,8 @@ public class LaserOverlayControl : FrameworkElement
                 var segAngle = Math.Atan2(dir.Y, dir.X) * 180.0 / Math.PI;
                 var midPt    = new WpfPoint((a.Position.X + b.Position.X) * 0.5,
                                             (a.Position.Y + b.Position.Y) * 0.5);
-                var halfLen  = dir.Length * 0.5;
+                // +1.5px bleed each side so adjacent quads overlap and hide the seam at bends
+                var halfLen  = dir.Length * 0.5 + 1.5;
 
                 var imgW   = _trailImage.PixelWidth;
                 var imgH   = _trailImage.PixelHeight;
@@ -236,7 +304,7 @@ public class LaserOverlayControl : FrameworkElement
                     Viewport      = new Rect(0, 0, 1, 1),
                     Stretch       = Stretch.Fill,
                     TileMode      = TileMode.None,
-                    Opacity       = combinedFade,
+                    Opacity       = alphaFactor,
                 };
                 ib.Freeze();
 
@@ -257,40 +325,29 @@ public class LaserOverlayControl : FrameworkElement
             }
             else
             {
-                var n  = UnitNormal(a.Position, b.Position);
-                var p1 = a.Position + n * (wA * 0.5);
-                var p2 = a.Position - n * (wA * 0.5);
-                var p3 = b.Position - n * (wB * 0.5);
-                var p4 = b.Position + n * (wB * 0.5);
-
-                var quad = new StreamGeometry();
-                using (var ctx = quad.Open())
-                {
-                    ctx.BeginFigure(p1, true, true);
-                    ctx.LineTo(p2, true, false);
-                    ctx.LineTo(p3, true, false);
-                    ctx.LineTo(p4, true, false);
-                }
-                quad.Freeze();
-
                 MediaColor segColor;
                 if (settings.TailRainbowMode)
                 {
                     var rc   = SampleRainbow(prog);
-                    segColor = MediaColor.FromArgb((byte)(255 * combinedFade), rc.R, rc.G, rc.B);
+                    segColor = MediaColor.FromArgb((byte)(255 * alphaFactor), rc.R, rc.G, rc.B);
                 }
                 else if (endColor is not null)
                 {
                     var lerped = ColorHelper.Lerp(tailColor, endColor.Value, 1.0 - prog);
-                    segColor   = MediaColor.FromArgb((byte)(lerped.A * combinedFade), lerped.R, lerped.G, lerped.B);
+                    segColor   = MediaColor.FromArgb((byte)(lerped.A * alphaFactor), lerped.R, lerped.G, lerped.B);
                 }
                 else
                 {
-                    segColor = MediaColor.FromArgb((byte)(tailColor.A * combinedFade), tailColor.R, tailColor.G, tailColor.B);
+                    segColor = MediaColor.FromArgb((byte)(tailColor.A * alphaFactor), tailColor.R, tailColor.G, tailColor.B);
                 }
                 var sb = new SolidColorBrush(segColor);
                 sb.Freeze();
-                dc.DrawGeometry(sb, null, quad);
+                // DrawLine with round caps: adjacent segments share endpoints and the
+                // semicircular caps fill any gap at bends — no seams regardless of angle.
+                var pen = new System.Windows.Media.Pen(sb, (wA + wB) * 0.5)
+                    { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+                pen.Freeze();
+                dc.DrawLine(pen, a.Position, b.Position);
             }
         }
     }
@@ -323,12 +380,159 @@ public class LaserOverlayControl : FrameworkElement
         }
     }
 
+    // ── Trail pattern overlays ───────────────────────────────────────────────
+
+    private void DrawTrailPattern(DrawingContext dc, List<SmoothedPoint> sp)
+    {
+        if (settings.TrailPattern == 0 || sp.Count < 2) return;
+        double t    = DateTime.UtcNow.TimeOfDay.TotalSeconds;
+        double spd  = settings.TrailPatternSpeed;
+        double inty = settings.TrailPatternIntensity;
+        double max  = settings.TailThickness;
+
+        int step = Math.Max(1, sp.Count / 30);
+
+        switch (settings.TrailPattern)
+        {
+            case 1: // Fire — warm flames licking upward from the trail
+            {
+                for (int i = 0; i < sp.Count; i += step)
+                {
+                    var    pt  = sp[i].Position;
+                    double age = sp[i].AgeRatio;
+                    double baseH = max * 2.5 * inty;
+                    for (int f = 0; f < 3; f++)
+                    {
+                        double phase = (t * spd * 2.0 + i * 0.618034 + f * 0.33333) % 1.0;
+                        double yOff  = -phase * baseH;
+                        double xOff  = Math.Sin(phase * Math.PI * 2.0 + i * 1.309) * max * 0.45;
+                        double sz    = Math.Max(0.5, max * 0.55 * (1.0 - phase) * (1.0 - age));
+                        double a     = (1.0 - phase) * (1.0 - age * 0.8) * inty;
+                        byte   g     = (byte)Math.Max(0, 255 * (1.0 - phase * 0.85));
+                        var    c     = MediaColor.FromArgb((byte)(a * 200), 255, g, 0);
+                        var    br    = new SolidColorBrush(c); br.Freeze();
+                        dc.DrawEllipse(br, null, new WpfPoint(pt.X + xOff, pt.Y + yOff), sz, sz);
+                    }
+                }
+                break;
+            }
+            case 2: // Electric — jagged spark arcs branching off the trail
+            {
+                int frame2 = (int)(t * spd * 6) % 9973;
+                var rng    = new System.Random(frame2);
+                for (int i = 1; i < sp.Count; i += step)
+                {
+                    if (rng.NextDouble() > 0.35 * inty) continue;
+                    var    pt    = sp[i].Position;
+                    var    prv   = sp[i - 1].Position;
+                    double age   = sp[i].AgeRatio;
+                    var    dir   = new Vector(pt.X - prv.X, pt.Y - prv.Y);
+                    if (dir.Length < 0.01) continue;
+                    dir.Normalize();
+                    var    perp  = new Vector(-dir.Y, dir.X);
+                    double len   = max * 3.0 * inty * (1.0 - age);
+                    double alpha = 0.85 * (1.0 - age) * inty;
+                    var    pts   = new List<WpfPoint> { pt };
+                    var    cur   = pt;
+                    double rem   = len;
+                    while (rem > 1.5)
+                    {
+                        double seg = Math.Min(rem, max * 0.9);
+                        double off = (rng.NextDouble() - 0.5) * max * 1.8;
+                        var    nxt = new WpfPoint(cur.X + dir.X * seg * 0.5 + perp.X * off,
+                                                  cur.Y + dir.Y * seg * 0.5 + perp.Y * off);
+                        pts.Add(nxt); cur = nxt; rem -= seg;
+                    }
+                    var col = MediaColor.FromArgb((byte)(alpha * 230), 170, 210, 255);
+                    var pen = new System.Windows.Media.Pen(new SolidColorBrush(col), 0.9); pen.Freeze();
+                    for (int k = 0; k < pts.Count - 1; k++)
+                        dc.DrawLine(pen, pts[k], pts[k + 1]);
+                }
+                break;
+            }
+            case 3: // Smoke — soft gray puffs drifting upward
+            {
+                for (int i = 0; i < sp.Count; i += step)
+                {
+                    var    pt    = sp[i].Position;
+                    double age   = sp[i].AgeRatio;
+                    double phase = (t * spd * 0.4 + i * 0.4142) % 1.0;
+                    double yOff  = -phase * max * 5.0 * inty;
+                    double xOff  = Math.Sin(phase * Math.PI + i * 0.916) * max * 0.9;
+                    double sz    = max * (0.6 + phase * 1.8) * (1.0 - age * 0.7) * inty;
+                    double a     = (1.0 - phase) * (1.0 - age * 0.5) * inty * 0.45;
+                    if (sz < 0.5) continue;
+                    var c  = MediaColor.FromArgb((byte)(a * 180), 185, 185, 200);
+                    var br = new SolidColorBrush(c); br.Freeze();
+                    dc.DrawEllipse(br, null, new WpfPoint(pt.X + xOff, pt.Y + yOff), sz, sz);
+                }
+                break;
+            }
+            case 4: // Plasma — cycling rainbow hue overlay along the trail
+            {
+                for (int i = 0; i < sp.Count; i += step)
+                {
+                    var    pt  = sp[i].Position;
+                    double age = sp[i].AgeRatio;
+                    double hue = (t * spd * 120.0 + i * 8.0) % 360.0;
+                    double sz  = max * 0.75 * (1.0 - age) * inty;
+                    double a   = (1.0 - age) * inty * 0.65;
+                    if (sz < 0.5) continue;
+                    var c  = HsvToRgb(hue, 1.0, 1.0, a);
+                    var br = new SolidColorBrush(c); br.Freeze();
+                    dc.DrawEllipse(br, null, pt, sz, sz);
+                }
+                break;
+            }
+        }
+    }
+
+    private static MediaColor HsvToRgb(double h, double s, double v, double a)
+    {
+        h %= 360;
+        double c  = v * s;
+        double x  = c * (1.0 - Math.Abs(h / 60.0 % 2.0 - 1.0));
+        double m  = v - c;
+        double r1, g1, b1;
+        if      (h < 60 ) { r1 = c; g1 = x; b1 = 0; }
+        else if (h < 120) { r1 = x; g1 = c; b1 = 0; }
+        else if (h < 180) { r1 = 0; g1 = c; b1 = x; }
+        else if (h < 240) { r1 = 0; g1 = x; b1 = c; }
+        else if (h < 300) { r1 = x; g1 = 0; b1 = c; }
+        else              { r1 = c; g1 = 0; b1 = x; }
+        return MediaColor.FromArgb((byte)(a * 255),
+            (byte)((r1 + m) * 255), (byte)((g1 + m) * 255), (byte)((b1 + m) * 255));
+    }
+
     private void DrawHead(DrawingContext dc, WpfPoint pt)
     {
+        // ── Click cursor swap override ───────────────────────────────────────────────
+        if (settings.ClickSwapEnabled && _clickSwapImage is not null && DateTime.UtcNow < _clickSwapUntil)
+        {
+            var swapHalfH  = settings.ClickSwapSize;
+            var swapAspect = (_clickSwapImage.PixelWidth > 0 && _clickSwapImage.PixelHeight > 0)
+                             ? (double)_clickSwapImage.PixelWidth / _clickSwapImage.PixelHeight : 1.0;
+            var swapHalfW  = swapHalfH * swapAspect;
+            var swapAngle  = Math.Atan2(_moveDir.Y, _moveDir.X) * 180.0 / Math.PI;
+            bool swapFlipX = Math.Abs(swapAngle) > 90.0;
+            if (swapFlipX) swapAngle = -(swapAngle > 0.0 ? 180.0 - swapAngle : -180.0 - swapAngle);
+            dc.PushTransform(new RotateTransform(swapAngle, pt.X, pt.Y));
+            if (swapFlipX) dc.PushTransform(new ScaleTransform(-1, 1, pt.X, pt.Y));
+            dc.DrawImage(_clickSwapImage, new Rect(pt.X - swapHalfW, pt.Y - swapHalfH, swapHalfW * 2, swapHalfH * 2));
+            if (swapFlipX) dc.Pop();
+            dc.Pop();
+            return;
+        }
+
         if (settings.DotUseCustomImage && _dotFrames.Count > 0)
         {
             var frame  = _dotFrames[_dotFrameIdx % _dotFrames.Count];
             var halfH  = settings.DotSize * 6.0;
+            if (settings.PulseEnabled)
+            {
+                var secs = DateTime.UtcNow.TimeOfDay.TotalSeconds;
+                halfH *= 1.0 + settings.PulseIntensity * Math.Sin(2.0 * Math.PI * settings.PulseSpeed * secs);
+            }
             var aspect = (frame.PixelWidth > 0 && frame.PixelHeight > 0)
                          ? (double)frame.PixelWidth / frame.PixelHeight
                          : 1.0;
@@ -338,6 +542,8 @@ public class LaserOverlayControl : FrameworkElement
             var angle  = Math.Atan2(_moveDir.Y, _moveDir.X) * 180.0 / Math.PI;
             bool flipX = Math.Abs(angle) > 90.0;
             if (flipX) angle = -(angle > 0.0 ? 180.0 - angle : -180.0 - angle);
+            if (settings.SpinEnabled)
+                angle += DateTime.UtcNow.TimeOfDay.TotalSeconds * settings.SpinSpeed * (settings.SpinCW ? 1.0 : -1.0);
 
             dc.PushTransform(new RotateTransform(angle, pt.X, pt.Y));
             if (flipX) dc.PushTransform(new ScaleTransform(-1, 1, pt.X, pt.Y));
@@ -349,26 +555,273 @@ public class LaserOverlayControl : FrameworkElement
 
         var dotColor = ColorHelper.ParseColor(settings.DotColor);
         var dotSize  = settings.DotSize;
+        if (settings.PulseEnabled)
+        {
+            var secs = DateTime.UtcNow.TimeOfDay.TotalSeconds;
+            dotSize *= 1.0 + settings.PulseIntensity * Math.Sin(2.0 * Math.PI * settings.PulseSpeed * secs);
+        }
 
         if (settings.DotGlowEnabled)
         {
             var gc     = ColorHelper.ParseColor(settings.DotGlowColor);
             var radius = settings.DotGlowRadius;
-            var glow   = new RadialGradientBrush(gc, MediaColor.FromArgb(0, gc.R, gc.G, gc.B))
+            switch (settings.DotGlowBloom)
             {
-                Center         = new WpfPoint(0.5, 0.5),
-                GradientOrigin = new WpfPoint(0.5, 0.5),
-                RadiusX        = 1,
-                RadiusY        = 1,
-            };
-            glow.Freeze();
-            dc.DrawEllipse(glow, null, pt, radius, radius);
+                case 1: // Hard — solid fill, sharp edge
+                {
+                    var hardBrush = new SolidColorBrush(gc);
+                    hardBrush.Freeze();
+                    dc.DrawEllipse(hardBrush, null, pt, radius, radius);
+                    break;
+                }
+                case 2: // Pulse — soft gradient, radius pulsates with dot
+                    if (settings.PulseEnabled)
+                    {
+                        var secs2 = DateTime.UtcNow.TimeOfDay.TotalSeconds;
+                        radius   *= 1.0 + settings.PulseIntensity * Math.Sin(2.0 * Math.PI * settings.PulseSpeed * secs2);
+                    }
+                    goto default;
+                default: // Soft — radial gradient falloff
+                {
+                    var glow = new RadialGradientBrush(gc, MediaColor.FromArgb(0, gc.R, gc.G, gc.B))
+                    {
+                        Center         = new WpfPoint(0.5, 0.5),
+                        GradientOrigin = new WpfPoint(0.5, 0.5),
+                        RadiusX        = 1,
+                        RadiusY        = 1,
+                    };
+                    glow.Freeze();
+                    dc.DrawEllipse(glow, null, pt, radius, radius);
+                    break;
+                }
+            }
         }
 
         var headBrush = new SolidColorBrush(dotColor);
         headBrush.Freeze();
-        dc.DrawEllipse(headBrush, null, pt, dotSize, dotSize);
+        bool spinShape = settings.SpinEnabled && settings.DotShape != 0;
+        if (spinShape)
+        {
+            double sa = DateTime.UtcNow.TimeOfDay.TotalSeconds * settings.SpinSpeed * (settings.SpinCW ? 1.0 : -1.0);
+            dc.PushTransform(new RotateTransform(sa, pt.X, pt.Y));
+        }
+        switch (settings.DotShape)
+        {
+            case 1: dc.DrawGeometry(headBrush, null, MakeStarGeometry(pt, dotSize, dotSize * 0.4, 5));          break;
+            case 2: dc.DrawGeometry(headBrush, null, MakeDiamondGeometry(pt, dotSize * 1.3));                   break;
+            case 3: dc.DrawGeometry(headBrush, null, MakeCrosshairGeometry(pt, dotSize * 1.4, dotSize * 0.4));  break;
+            default: dc.DrawEllipse(headBrush, null, pt, dotSize, dotSize);                                     break;
+        }
+        if (spinShape) dc.Pop();
     }
+
+    private static Geometry MakeStarGeometry(WpfPoint center, double outerR, double innerR, int points)
+    {
+        var g = new StreamGeometry();
+        using var ctx = g.Open();
+        for (int i = 0; i < points * 2; i++)
+        {
+            double angle = Math.PI * i / points - Math.PI / 2.0;
+            double r     = (i % 2 == 0) ? outerR : innerR;
+            var    p     = new WpfPoint(center.X + r * Math.Cos(angle), center.Y + r * Math.Sin(angle));
+            if (i == 0) ctx.BeginFigure(p, isFilled: true, isClosed: true);
+            else        ctx.LineTo(p, isStroked: false, isSmoothJoin: false);
+        }
+        g.Freeze();
+        return g;
+    }
+
+    private static Geometry MakeDiamondGeometry(WpfPoint center, double r)
+    {
+        var g = new StreamGeometry();
+        using var ctx = g.Open();
+        ctx.BeginFigure(new WpfPoint(center.X,           center.Y - r),     isFilled: true, isClosed: true);
+        ctx.LineTo(     new WpfPoint(center.X + r * 0.6, center.Y),         isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X,           center.Y + r),     isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X - r * 0.6, center.Y),         isStroked: false, isSmoothJoin: false);
+        g.Freeze();
+        return g;
+    }
+
+    private static Geometry MakeCrosshairGeometry(WpfPoint center, double armLen, double armWidth)
+    {
+        double hw = armWidth * 0.5;
+        var g = new StreamGeometry();
+        using var ctx = g.Open();
+        ctx.BeginFigure(new WpfPoint(center.X - armLen, center.Y - hw),   isFilled: true, isClosed: true);
+        ctx.LineTo(     new WpfPoint(center.X + armLen, center.Y - hw),   isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X + armLen, center.Y + hw),   isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X - armLen, center.Y + hw),   isStroked: false, isSmoothJoin: false);
+        ctx.BeginFigure(new WpfPoint(center.X - hw,   center.Y - armLen), isFilled: true, isClosed: true);
+        ctx.LineTo(     new WpfPoint(center.X + hw,   center.Y - armLen), isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X + hw,   center.Y + armLen), isStroked: false, isSmoothJoin: false);
+        ctx.LineTo(     new WpfPoint(center.X - hw,   center.Y + armLen), isStroked: false, isSmoothJoin: false);
+        g.Freeze();
+        return g;
+    }
+    // ── Click effects ─────────────────────────────────────────────────────────
+
+    public void AddClickEffect(WpfPoint localPosition, int button = 0)
+    {
+        // button: 0=left, 1=right, 2=middle, 3=double-click
+        var (enabled, style, _, _, _) = GetClickParams(button);
+        if (!enabled) return;
+        var sparks = style == 4 ? GenerateSparks() : null;
+        _clickEffects.Add(new ClickEffect(localPosition, DateTime.UtcNow, button, sparks));
+        InvalidateVisual();
+    }
+
+    public void TriggerClickSwap()
+    {
+        if (!settings.ClickSwapEnabled || _clickSwapImage is null) return;
+        _clickSwapUntil = DateTime.UtcNow.AddMilliseconds(settings.ClickSwapDurationMs);
+        InvalidateVisual();
+    }
+
+    private (double Vx, double Vy)[] GenerateSparks()
+    {
+        var count     = Math.Max(1, settings.SparkCount);
+        var speed     = settings.SparkInitialSpeed;
+        var spreadRad = settings.SparkSpreadDeg * Math.PI / 180.0;
+        var rng       = new Random();
+        var result    = new (double Vx, double Vy)[count];
+        for (int i = 0; i < count; i++)
+        {
+            // Full circle: evenly distributed + jitter. Partial spread: fan centred upward.
+            double baseAng = (settings.SparkSpreadDeg >= 359.0) ? 0.0 : -Math.PI / 2.0;
+            double ang     = baseAng + (rng.NextDouble() - 0.5) * spreadRad;
+            double s       = speed * (0.6 + rng.NextDouble() * 0.8);
+            result[i]      = (s * Math.Cos(ang), s * Math.Sin(ang));
+        }
+        return result;
+    }
+
+    private void DrawClickEffects(DrawingContext dc)
+    {
+        if (_clickEffects.Count == 0) return;
+        var now = DateTime.UtcNow;
+        _clickEffects.RemoveAll(e =>
+        {
+            var (_, _, _, _, dur) = GetClickParams(e.Button);
+            return (now - e.SpawnTime).TotalMilliseconds >= dur;
+        });
+        if (_clickEffects.Count == 0) return;
+
+        foreach (var effect in _clickEffects)
+        {
+            var (enabled, style, bc, size, durMs) = GetClickParams(effect.Button);
+            if (!enabled) continue;
+            double t      = Math.Clamp((now - effect.SpawnTime).TotalMilliseconds / durMs, 0, 1);
+            double alpha  = 1.0 - t;
+            double radius = size * t;
+            if (radius < 0.5) continue;
+
+            switch (style)
+            {
+                case 0: // Ripple — thin expanding ring
+                {
+                    var c   = MediaColor.FromArgb((byte)(bc.A * alpha), bc.R, bc.G, bc.B);
+                    var br  = new SolidColorBrush(c); br.Freeze();
+                    var pen = new System.Windows.Media.Pen(br, Math.Max(0.5, 3.0 * (1 - t)));
+                    pen.Freeze();
+                    dc.DrawEllipse(null, pen, effect.Position, radius, radius);
+                    break;
+                }
+                case 1: // Burst — 8 dots radiating out
+                {
+                    var c   = MediaColor.FromArgb((byte)(bc.A * alpha), bc.R, bc.G, bc.B);
+                    var br  = new SolidColorBrush(c); br.Freeze();
+                    double dotR = Math.Max(0.5, 3.5 * (1 - t));
+                    for (int k = 0; k < 8; k++)
+                    {
+                        double ang = k * Math.PI / 4.0;
+                        var pt = new WpfPoint(effect.Position.X + radius * Math.Cos(ang),
+                                              effect.Position.Y + radius * Math.Sin(ang));
+                        dc.DrawEllipse(br, null, pt, dotR, dotR);
+                    }
+                    break;
+                }
+                case 2: // Shockwave — thick expanding ring
+                {
+                    double thickness = Math.Max(0.5, 8.0 * (1 - t));
+                    var c   = MediaColor.FromArgb((byte)(bc.A * alpha * 0.8), bc.R, bc.G, bc.B);
+                    var br  = new SolidColorBrush(c); br.Freeze();
+                    var pen = new System.Windows.Media.Pen(br, thickness);
+                    pen.Freeze();
+                    dc.DrawEllipse(null, pen, effect.Position, radius, radius);
+                    break;
+                }
+                case 3: // Image Burst — images (or dots) radiating outward in a circle
+                {
+                    if (radius < 0.5) break;
+                    var count = Math.Max(1, settings.SparkCount);
+                    double pSize = settings.SparkParticleSize * Math.Max(0.2, 1.0 - t * 0.6);
+                    for (int k = 0; k < count; k++)
+                    {
+                        double ang = k * 2.0 * Math.PI / count;
+                        var pt = new WpfPoint(effect.Position.X + radius * Math.Cos(ang),
+                                              effect.Position.Y + radius * Math.Sin(ang));
+                        if (_clickParticleImage is not null && pSize >= 0.5)
+                        {
+                            double aspect = _clickParticleImage.PixelWidth > 0 && _clickParticleImage.PixelHeight > 0
+                                            ? (double)_clickParticleImage.PixelWidth / _clickParticleImage.PixelHeight : 1.0;
+                            double hw = pSize * aspect; double hh = pSize;
+                            dc.PushOpacity(alpha);
+                            double rotDeg = ang * 180.0 / Math.PI;
+                            dc.PushTransform(new RotateTransform(rotDeg, pt.X, pt.Y));
+                            dc.DrawImage(_clickParticleImage, new Rect(pt.X - hw, pt.Y - hh, hw * 2, hh * 2));
+                            dc.Pop(); dc.Pop();
+                        }
+                        else if (pSize >= 0.5)
+                        {
+                            var c  = MediaColor.FromArgb((byte)(bc.A * alpha), bc.R, bc.G, bc.B);
+                            var br = new SolidColorBrush(c); br.Freeze();
+                            dc.DrawEllipse(br, null, pt, pSize, pSize);
+                        }
+                    }
+                    break;
+                }
+                case 4: // Sparks — physics-based particles with gravity that sizzle downward
+                {
+                    if (effect.Sparks is null) break;
+                    double secs    = (now - effect.SpawnTime).TotalSeconds;
+                    double gravity = settings.SparkGravity;
+                    double pSize   = settings.SparkParticleSize;
+                    for (int k = 0; k < effect.Sparks.Length; k++)
+                    {
+                        var (vx, vy) = effect.Sparks[k];
+                        double px  = effect.Position.X + vx * secs;
+                        double py  = effect.Position.Y + vy * secs + 0.5 * gravity * secs * secs;
+                        double sz  = pSize * Math.Max(0.2, 1.0 - t * 0.6);
+                        if (sz < 0.5) continue;
+                        if (_clickParticleImage is not null)
+                        {
+                            double aspect = _clickParticleImage.PixelWidth > 0 && _clickParticleImage.PixelHeight > 0
+                                            ? (double)_clickParticleImage.PixelWidth / _clickParticleImage.PixelHeight : 1.0;
+                            double hw = sz * aspect; double hh = sz;
+                            dc.PushOpacity(alpha);
+                            dc.DrawImage(_clickParticleImage, new Rect(px - hw, py - hh, hw * 2, hh * 2));
+                            dc.Pop();
+                        }
+                        else
+                        {
+                            var c  = MediaColor.FromArgb((byte)(bc.A * alpha), bc.R, bc.G, bc.B);
+                            var br = new SolidColorBrush(c); br.Freeze();
+                            dc.DrawEllipse(br, null, new WpfPoint(px, py), sz, sz);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    private (bool enabled, int style, MediaColor color, double size, double durMs) GetClickParams(int button) => button switch
+    {
+        1 => (settings.RightClickEnabled,  settings.RightClickStyle,  ColorHelper.ParseColor(settings.RightClickColor),  settings.RightClickSize,  settings.RightClickDuration),
+        2 => (settings.MiddleClickEnabled, settings.MiddleClickStyle, ColorHelper.ParseColor(settings.MiddleClickColor), settings.MiddleClickSize, settings.MiddleClickDuration),
+        3 => (settings.DoubleClickEnabled, settings.ClickEffectStyle, ColorHelper.ParseColor(settings.ClickEffectColor), settings.ClickEffectSize * settings.DoubleClickMultiplier, settings.ClickEffectDuration),
+        _ => (settings.ClickEffectEnabled, settings.ClickEffectStyle, ColorHelper.ParseColor(settings.ClickEffectColor), settings.ClickEffectSize, settings.ClickEffectDuration),
+    };
 
     // ── Custom image loading ──────────────────────────────────────────────────
 
@@ -460,6 +913,76 @@ public class LaserOverlayControl : FrameworkElement
         catch { /* ignore unreadable image files */ }
     }
 
+    private void LoadClickParticleImage(string path)
+    {
+        _clickParticleImage      = null;
+        _loadedParticleImagePath = path;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+        try
+        {
+            var decoder = BitmapDecoder.Create(new Uri(path, UriKind.Absolute),
+                BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            if (decoder.Frames.Count > 0)
+            {
+                var stripped = StripWhiteBackground(decoder.Frames[0]);
+                _clickParticleImage = stripped;
+            }
+        }
+        catch { /* ignore unreadable image files */ }
+    }
+
+    private void LoadClickSwapImage(string path)
+    {
+        _clickSwapImage      = null;
+        _loadedClickSwapPath = path;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+        try
+        {
+            var decoder = BitmapDecoder.Create(new Uri(path, UriKind.Absolute),
+                BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            if (decoder.Frames.Count > 0)
+            {
+                var stripped = StripWhiteBackground(decoder.Frames[0]);
+                _clickSwapImage = stripped;
+            }
+        }
+        catch { /* ignore unreadable image files */ }
+    }
+
+    /// <summary>
+    /// Converts near-white pixels to transparent so images with white backgrounds
+    /// can be used as particles without a visible box around them.
+    /// Pixels whose minimum channel value is >= <paramref name="threshold"/> are faded
+    /// out proportionally (soft edge-preserving removal).
+    /// </summary>
+    private static BitmapSource StripWhiteBackground(BitmapSource source, byte threshold = 220)
+    {
+        var conv   = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+        int w      = conv.PixelWidth;
+        int h      = conv.PixelHeight;
+        int stride = w * 4;
+        var px     = new byte[h * stride];
+        conv.CopyPixels(px, stride, 0);
+
+        for (int i = 0; i < px.Length; i += 4)
+        {
+            byte b = px[i], g = px[i + 1], r = px[i + 2], a = px[i + 3];
+            if (a == 0) continue;                            // already transparent
+            int minCh = Math.Min(r, Math.Min(g, b));
+            if (minCh >= threshold)
+            {
+                // Linearly fade: at threshold → fully opaque, at 255 → fully transparent
+                double t = (minCh - threshold) / (double)(255 - threshold);
+                px[i + 3] = (byte)(a * Math.Max(0.0, 1.0 - t));
+            }
+        }
+
+        var result = BitmapSource.Create(w, h, source.DpiX, source.DpiY,
+            PixelFormats.Bgra32, null, px, stride);
+        result.Freeze();
+        return result;
+    }
+
     // ── Rainbow trail ─────────────────────────────────────────────────────────
 
     private static readonly MediaColor[] RainbowStops =
@@ -496,12 +1019,13 @@ public class LaserOverlayControl : FrameworkElement
 
         var butter = settings.ButterModeEnabled;
         var isWave = settings.WaveEnabled;
+        var smooth = Math.Clamp(settings.TrailSmoothness, 0.25, 3.0);
         // Wave mode: points are already 8 px apart with the wave shape baked in,
         // so heavy Catmull-Rom expansion is wasteful — 2–3 subs is plenty.
         var lenDiv = butter ? 1.9 : (isWave ? 8.0 : 2.4);
         var angDiv = butter ? 5.5 : 8.0;
-        var minSub = butter ? 10  : (isWave ? 2 : 6);
-        var maxSub = butter ? 56  : (isWave ? 14 : 32);
+        var minSub = Math.Max(1,  (int)Math.Round((butter ? 10 : (isWave ? 2 : 6))  * smooth));
+        var maxSub = Math.Max(2,  (int)Math.Round((butter ? 56 : (isWave ? 14 : 32)) * smooth));
 
         var expanded = new List<SmoothedPoint>(active.Count * 8)
         {
@@ -614,4 +1138,5 @@ public class LaserOverlayControl : FrameworkElement
 
     private readonly record struct TrailPoint(WpfPoint Position, DateTime Timestamp);
     private readonly record struct SmoothedPoint(WpfPoint Position, DateTime Timestamp, double AgeRatio);
+    private readonly record struct ClickEffect(WpfPoint Position, DateTime SpawnTime, int Button, (double Vx, double Vy)[]? Sparks);
 }

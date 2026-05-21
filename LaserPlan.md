@@ -43,10 +43,10 @@ Customize the appearance of the dot at the tip of the laser.
 
 - ✅ **Color** — color wheel picker + RGB/HEX input + opacity slider
 - ✅ **Size** — slider (small → large, in px)
-- **Shape presets** — Circle (default), Star, Diamond, Crosshair
-- **Custom image** — import any PNG/SVG as the dot; adjustable size and transparency
-- **Pulse animation** — optional rhythmic size oscillation; speed and intensity adjustable
-- **Spin animation** — optional rotation for custom dot images; speed and direction adjustable
+- ✅ **Shape presets** — Circle (default), Star, Diamond, Crosshair
+- ✅ **Custom image** — import any PNG/SVG as the dot; adjustable size and transparency
+- ✅ **Pulse animation** — optional rhythmic size oscillation; speed and intensity adjustable
+- ✅ **Spin animation** — optional rotation for custom dot images; speed and direction adjustable
 
 ---
 
@@ -57,8 +57,8 @@ An optional soft radial glow rendered behind the dot.
 - ✅ **Enable/disable** toggle
 - ✅ **Color** — independent color wheel + RGB/HEX input (can differ from dot color)
 - ✅ **Radius** — size of the glow halo in px
-- **Intensity/opacity** — how bright and visible the glow appears
-- **Bloom style** — Soft (Gaussian), Hard (sharp edge), Pulse (synced to dot pulse if enabled)
+- ✅ **Intensity/opacity** — how bright and visible the glow appears
+- ✅ **Bloom style** — Soft (Gaussian), Hard (sharp edge), Pulse (synced to dot pulse if enabled)
 
 ---
 
@@ -71,10 +71,9 @@ Fine-grained control over the trailing streak behind the cursor.
 - ✅ **Length** — how long the trail persists before fading (ms value or Short/Medium/Long preset)
 - ✅ **Thickness** — max width at the head end in px
 - ✅ **Taper profile** — how quickly the trail narrows (linear, exponential, or custom curve)
-- **Fade style** — Alpha only, Thin-and-fade (default), or Glow-dissolve
-- **Smoothness** — dedicated slider for Catmull-Rom subdivision density, independent of Butter Mode
-- **Motion blur** — optional directional blur rendered along the trail's velocity vector; blur length and opacity adjustable; gives a high-speed "streaking" look
-- **Trail animation patterns** — style overlays applied on top of the base trail: Fire, Electric, Smoke, Rainbow (✅ implemented), Plasma; each has speed and intensity controls
+- ✅ **Fade style** — Alpha only, Thin-and-fade (default), or Glow-dissolve
+- ✅ **Smoothness** — dedicated slider for Catmull-Rom subdivision density, independent of Butter Mode
+- ✅ **Trail animation patterns** — style overlays applied on top of the base trail: Fire, Electric, Smoke, Plasma; each has speed and intensity controls
 
 ---
 
@@ -85,8 +84,8 @@ An optional bloom rendered along the full length of the trail.
 - ✅ **Enable/disable** toggle
 - ✅ **Color** — independent color wheel + RGB/HEX input
 - ✅ **Width** — how far the glow extends beyond the trail edges in px
-- **Intensity/opacity** — brightness of the bloom
-- **Falloff** — how quickly the glow fades laterally (soft vs. sharp)
+- ✅ **Intensity/opacity** — brightness of the bloom
+- ✅ **Falloff** — how quickly the glow fades laterally (soft vs. sharp)
 
 ---
 
@@ -109,22 +108,22 @@ like embers dropping off the laser.
 
 Visual effects triggered by mouse button presses, rendered at the click position.
 
-- **Left click effect**
+- ✅ **Left click effect**
   - Enable/disable toggle
   - Effect style: Ripple, Burst, Shockwave, Sparkle, or custom image
   - Color, size, and duration adjustable
   - Optional secondary pulse ring
 
-- **Right click effect**
+- ✅ **Right click effect**
   - Independent style, color, and size from left click
   - Effect style: same options as left click, defaults to a different preset
   - Optional label flash (brief text overlay, e.g. "Right Click")
 
-- **Middle click effect**
+- ✅ **Middle click effect**
   - Lightweight separate effect (e.g. small crosshair burst)
   - Color, size, and duration adjustable
 
-- **Double-click effect**
+- ✅ **Double-click effect**
   - Optional distinct layered animation on rapid double-click detection
   - Intensity multiplier relative to single click effect
 
@@ -167,20 +166,7 @@ Save and switch between complete configurations instantly.
 
 ---
 
-### 9. Trigger Modes
-
-Control exactly when the laser effect is active.
-
-- ✅ **Always on** (current default)
-- **Hold button** — laser only shows while a chosen key or mouse button is held
-- **Toggle hotkey** — global hotkey turns laser on/off (fully customizable key combo)
-- **App-focus trigger** — automatically activates when specific apps are foregrounded
-  (e.g. PowerPoint, Keynote, OBS, Zoom) and deactivates otherwise; app list is user-managed
-- **Presentation mode** — single toggle that applies a curated set of overrides optimized for presenting: enlarged dot, longer trail, reduced distracting effects, auto-hides after 3 s of no movement, re-appears on movement; activatable via hotkey or app-focus trigger on PowerPoint/Keynote/Slides
-
----
-
-### 10. Display & Accessibility
+### 9. Display & Accessibility
 
 - **Hide system cursor** — optionally suppress the real Windows cursor so only the laser dot shows
 - **Per-monitor DPI scaling** — correctly scales overlay on mixed-resolution multi-monitor setups
@@ -190,7 +176,7 @@ Control exactly when the laser effect is active.
 
 ---
 
-### 11. Startup & System Integration
+### 10. Startup & System Integration
 
 - ✅ **Launch at Windows startup** — optional auto-run on login via registry
 - ✅ **Start minimized to tray** — no window shown on launch
@@ -198,20 +184,7 @@ Control exactly when the laser effect is active.
 
 ---
 
-### 12. Cursor Spotlight
-
-Darkens the screen everywhere except a soft circular halo centered on the cursor — draws audience attention to the pointer during presentations or recordings.
-
-- **Enable/disable** toggle (hotkey assignable)
-- **Spotlight radius** — size of the lit circle in px
-- **Dim opacity** — how dark the surrounding screen gets (0 % = transparent, 100 % = fully black)
-- **Edge softness** — feathering width of the vignette falloff
-- **Spotlight color tint** — optionally tint the lit area (e.g. warm yellow, cool blue)
-- **Fade-in/out speed** — transition duration when enabling or disabling
-
----
-
-### 13. Window Highlighting
+### 11. Window Highlighting
 
 Draws a colored border or glow around whichever window is under the cursor, making the active target obvious during demos.
 
@@ -224,7 +197,7 @@ Draws a colored border or glow around whichever window is under the cursor, maki
 
 ---
 
-### 14. RGB Peripheral Sync
+### 12. RGB Peripheral Sync
 
 Mirrors the active laser color to supported RGB peripherals in real time.
 
@@ -240,7 +213,7 @@ Mirrors the active laser color to supported RGB peripherals in real time.
 
 ---
 
-### 15. Recording Mode & OBS Integration
+### 13. Recording Mode & OBS Integration
 
 Optimizes the laser for screen capture and live streaming.
 

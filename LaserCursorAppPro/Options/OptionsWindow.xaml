@@ -183,6 +183,21 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- Dot Shape Presets -->
+                        <TextBlock Text="DOT SHAPE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotShape" ToolTip="Reset to baseline"/>
+                            <TextBlock Text="Shape preset" Style="{StaticResource RowLabel}" Width="140"/>
+                            <ComboBox x:Name="DotShapeCombo" SelectionChanged="DotShape_Changed">
+                                <ComboBoxItem Content="Circle"/>
+                                <ComboBoxItem Content="Star"/>
+                                <ComboBoxItem Content="Diamond"/>
+                                <ComboBoxItem Content="Crosshair"/>
+                            </ComboBox>
+                        </DockPanel>
+
                         <!-- Dot Image -->
                         <TextBlock Text="DOT IMAGE" Style="{StaticResource SectionHeader}"/>
                         <Separator/>
@@ -253,6 +268,72 @@
                                     </Grid>
                                 </StackPanel>
                             </Grid>
+
+                            <DockPanel Margin="0,4,0,6">
+                                <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDotGlowBloom" ToolTip="Reset to baseline"/>
+                                <TextBlock Text="Bloom style" Style="{StaticResource RowLabel}" Width="140"/>
+                                <ComboBox x:Name="DotGlowBloomCombo" SelectionChanged="DotGlowBloom_Changed">
+                                    <ComboBoxItem Content="Soft"/>
+                                    <ComboBoxItem Content="Hard (sharp edge)"/>
+                                    <ComboBoxItem Content="Pulse (synced)"/>
+                                </ComboBox>
+                            </DockPanel>
+                        </StackPanel>
+
+                        <!-- Dot Pulse -->
+                        <TextBlock Text="DOT PULSE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetPulseEnabled" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="PulseCheck" Content="Enable pulse animation"
+                                      Checked="Pulse_Toggle" Unchecked="Pulse_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="PulsePanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Speed (Hz)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="PulseSpeedSlider" Minimum="0.2" Maximum="8" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="PulseSpeed_Changed"/>
+                                <TextBox x:Name="PulseSpeedBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetPulseSpeed" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Intensity" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="PulseIntensitySlider" Minimum="0.05" Maximum="1" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="PulseIntensity_Changed"/>
+                                <TextBox x:Name="PulseIntensityBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetPulseIntensity" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Dot Spin -->
+                        <TextBlock Text="DOT SPIN" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetSpinEnabled" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="SpinCheck" Content="Enable spin animation (custom image only)"
+                                      Checked="Spin_Toggle" Unchecked="Spin_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="SpinPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Speed (°/sec)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SpinSpeedSlider" Minimum="10" Maximum="720" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="SpinSpeed_Changed"/>
+                                <TextBox x:Name="SpinSpeedBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSpinSpeed" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <DockPanel Margin="0,0,0,6">
+                                <TextBlock Text="Direction" Style="{StaticResource RowLabel}" Width="140"/>
+                                <ComboBox x:Name="SpinDirCombo" SelectionChanged="SpinDir_Changed">
+                                    <ComboBoxItem Content="Clockwise"/>
+                                    <ComboBoxItem Content="Counter-clockwise"/>
+                                </ComboBox>
+                            </DockPanel>
                         </StackPanel>
 
                     </StackPanel>
@@ -365,7 +446,28 @@
                             <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTailTaper" ToolTip="Reset to baseline"/>
                         </Grid>
 
-                        <!-- Smoothness -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Fade style" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <ComboBox x:Name="TailFadeStyleCombo" Grid.Column="1" SelectionChanged="TailFadeStyle_Changed">
+                                <ComboBoxItem Content="Alpha only"/>
+                                <ComboBoxItem Content="Thin-and-fade"/>
+                                <ComboBoxItem Content="Glow-dissolve"/>
+                            </ComboBox>
+                            <Button Content="&#x21BA;" Grid.Column="2" Style="{StaticResource ResetBtn}" Click="ResetTailFadeStyle" ToolTip="Reset to baseline"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Smoothness" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <Slider x:Name="TrailSmoothnessSlider" Minimum="0.25" Maximum="3" Grid.Column="1"
+                                    VerticalAlignment="Center" ValueChanged="TrailSmoothness_Changed"/>
+                            <TextBox x:Name="TrailSmoothnessBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                     GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                            <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTrailSmoothness" ToolTip="Reset to baseline"/>
+                        </Grid>
+
+                        <!-- Smoothness / Butter Mode -->
                         <Grid Margin="0,4,0,6">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
                             <TextBlock Text="Butter Mode" Style="{StaticResource RowLabel}" Grid.Column="0"/>
@@ -447,6 +549,322 @@
                                 <TextBox x:Name="WaveFreqBox" Style="{StaticResource ValueBox}" Grid.Column="2"
                                          GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
                                 <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetWaveFreq" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Trail Pattern -->
+                        <TextBlock Text="TRAIL PATTERN" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Style" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                            <ComboBox x:Name="TrailPatternCombo" Grid.Column="1" SelectionChanged="TrailPattern_Changed">
+                                <ComboBoxItem Content="None"/>
+                                <ComboBoxItem Content="Fire"/>
+                                <ComboBoxItem Content="Electric"/>
+                                <ComboBoxItem Content="Smoke"/>
+                                <ComboBoxItem Content="Plasma"/>
+                            </ComboBox>
+                            <Button Content="&#x21BA;" Grid.Column="2" Style="{StaticResource ResetBtn}" Click="ResetTrailPattern" ToolTip="Reset to baseline"/>
+                        </Grid>
+                        <StackPanel x:Name="TrailPatternPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Speed" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="TrailPatternSpeedSlider" Minimum="0.1" Maximum="5" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="TrailPatternSpeed_Changed"/>
+                                <TextBox x:Name="TrailPatternSpeedBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTrailPatternSpeed" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Intensity" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="TrailPatternIntensitySlider" Minimum="0.1" Maximum="1" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="TrailPatternIntensity_Changed"/>
+                                <TextBox x:Name="TrailPatternIntensityBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetTrailPatternIntensity" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ════════ EFFECTS TAB ════════ -->
+            <TabItem Header="Effects">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#1E1E2E">
+                    <StackPanel Margin="16,8,16,16">
+
+                        <!-- Click Effects -->
+                        <TextBlock Text="CLICK EFFECTS" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetClickEffect" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="ClickEffectCheck" Content="Show effect on mouse click"
+                                      Checked="ClickEffect_Toggle" Unchecked="ClickEffect_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="ClickEffectPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Style" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <ComboBox x:Name="ClickEffectStyleCombo" Grid.Column="1"
+                                          SelectionChanged="ClickEffectStyle_Changed">
+                                    <ComboBoxItem Content="Ripple"/>
+                                    <ComboBoxItem Content="Burst (dots)"/>
+                                    <ComboBoxItem Content="Shockwave"/>
+                                    <ComboBoxItem Content="Image Burst"/>
+                                    <ComboBoxItem Content="Sparks"/>
+                                </ComboBox>
+                            </Grid>
+                            <TextBlock Text="Color" Style="{StaticResource SectionHeader}" Margin="0,8,0,4"/>
+                            <ctrl:ColorPickerControl x:Name="ClickEffectColorPicker" ColorChanged="ClickEffectColor_Changed"/>
+                            <Grid Margin="0,6,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Max Radius (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="ClickEffectSizeSlider" Minimum="10" Maximum="120" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="ClickEffectSize_Changed"/>
+                                <TextBox x:Name="ClickEffectSizeBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetClickEffectSize" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Duration (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="ClickEffectDurSlider" Minimum="100" Maximum="1500" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="ClickEffectDur_Changed"/>
+                                <TextBox x:Name="ClickEffectDurBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetClickEffectDur" ToolTip="Reset to baseline"/>
+                            </Grid>
+
+                            <!-- Particle image (styles: Image Burst / Sparks) -->
+                            <TextBlock Text="PARTICLE IMAGE (Image Burst / Sparks)" Style="{StaticResource SectionHeader}" Margin="0,10,0,4"/>
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right" Content="Clear" Margin="4,0,0,0" Click="ParticleImage_Clear"/>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Margin="4,0,0,0" Click="ParticleImage_Browse"/>
+                                <TextBlock x:Name="ParticleImageLabel" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Text="None (use colored dots)"
+                                           Foreground="#AAAAAA" FontStyle="Italic"/>
+                            </DockPanel>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Particle Count" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SparkCountSlider" Minimum="1" Maximum="40" Grid.Column="1"
+                                        VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="1"
+                                        ValueChanged="SparkCount_Changed"/>
+                                <TextBox x:Name="SparkCountBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSparkCount" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Particle Size (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SparkParticleSizeSlider" Minimum="2" Maximum="48" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="SparkParticleSize_Changed"/>
+                                <TextBox x:Name="SparkParticleSizeBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSparkParticleSize" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Spread (deg)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SparkSpreadSlider" Minimum="10" Maximum="360" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="SparkSpread_Changed"/>
+                                <TextBox x:Name="SparkSpreadBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSparkSpread" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Initial Speed" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SparkSpeedSlider" Minimum="20" Maximum="1000" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="SparkSpeed_Changed"/>
+                                <TextBox x:Name="SparkSpeedBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSparkSpeed" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Gravity (px/s²)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="SparkGravitySlider" Minimum="0" Maximum="2000" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="SparkGravity_Changed"/>
+                                <TextBox x:Name="SparkGravityBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetSparkGravity" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Right-click Effect -->
+                        <TextBlock Text="RIGHT-CLICK EFFECT" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetRightClick" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="RightClickCheck" Content="Show effect on right-click"
+                                      Checked="RightClick_Toggle" Unchecked="RightClick_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="RightClickPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Style" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <ComboBox x:Name="RightClickStyleCombo" Grid.Column="1" SelectionChanged="RightClickStyle_Changed">
+                                    <ComboBoxItem Content="Ripple"/>
+                                    <ComboBoxItem Content="Burst (dots)"/>
+                                    <ComboBoxItem Content="Shockwave"/>
+                                    <ComboBoxItem Content="Image Burst"/>
+                                    <ComboBoxItem Content="Sparks"/>
+                                </ComboBox>
+                            </Grid>
+                            <TextBlock Text="Color" Style="{StaticResource SectionHeader}" Margin="0,8,0,4"/>
+                            <ctrl:ColorPickerControl x:Name="RightClickColorPicker" ColorChanged="RightClickColor_Changed"/>
+                            <Grid Margin="0,6,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Max Radius (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="RightClickSizeSlider" Minimum="10" Maximum="120" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="RightClickSize_Changed"/>
+                                <TextBox x:Name="RightClickSizeBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetRightClickSize" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Duration (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="RightClickDurSlider" Minimum="100" Maximum="1500" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="RightClickDur_Changed"/>
+                                <TextBox x:Name="RightClickDurBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetRightClickDur" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Middle-click Effect -->
+                        <TextBlock Text="MIDDLE-CLICK EFFECT" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetMiddleClick" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="MiddleClickCheck" Content="Show effect on middle-click"
+                                      Checked="MiddleClick_Toggle" Unchecked="MiddleClick_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="MiddleClickPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Style" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <ComboBox x:Name="MiddleClickStyleCombo" Grid.Column="1" SelectionChanged="MiddleClickStyle_Changed">
+                                    <ComboBoxItem Content="Ripple"/>
+                                    <ComboBoxItem Content="Burst (dots)"/>
+                                    <ComboBoxItem Content="Shockwave"/>
+                                    <ComboBoxItem Content="Image Burst"/>
+                                    <ComboBoxItem Content="Sparks"/>
+                                </ComboBox>
+                            </Grid>
+                            <TextBlock Text="Color" Style="{StaticResource SectionHeader}" Margin="0,8,0,4"/>
+                            <ctrl:ColorPickerControl x:Name="MiddleClickColorPicker" ColorChanged="MiddleClickColor_Changed"/>
+                            <Grid Margin="0,6,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Max Radius (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="MiddleClickSizeSlider" Minimum="10" Maximum="120" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="MiddleClickSize_Changed"/>
+                                <TextBox x:Name="MiddleClickSizeBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetMiddleClickSize" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Duration (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="MiddleClickDurSlider" Minimum="100" Maximum="1500" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="MiddleClickDur_Changed"/>
+                                <TextBox x:Name="MiddleClickDurBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetMiddleClickDur" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Double-click Effect -->
+                        <TextBlock Text="DOUBLE-CLICK EFFECT" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetDoubleClick" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="DoubleClickCheck" Content="Enhanced effect on double-click (uses left-click style)"
+                                      Checked="DoubleClick_Toggle" Unchecked="DoubleClick_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="DoubleClickPanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Size multiplier" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="DoubleClickMultSlider" Minimum="1.1" Maximum="4.0" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="DoubleClickMult_Changed"/>
+                                <TextBox x:Name="DoubleClickMultBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetDoubleClickMult" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Detect window (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="DoubleClickMsSlider" Minimum="100" Maximum="600" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="DoubleClickMs_Changed"/>
+                                <TextBox x:Name="DoubleClickMsBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetDoubleClickMs" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Click Cursor Swap -->
+                        <TextBlock Text="CLICK CURSOR SWAP" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetClickSwap" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="ClickSwapCheck" Content="Swap cursor image on click"
+                                      Checked="ClickSwap_Toggle" Unchecked="ClickSwap_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="ClickSwapPanel" IsEnabled="False">
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right" Content="Clear" Margin="4,0,0,0" Click="ClickSwapImage_Clear"/>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Margin="4,0,0,0" Click="ClickSwapImage_Browse"/>
+                                <TextBlock x:Name="ClickSwapImageLabel" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Text="No file selected"
+                                           Foreground="#AAAAAA" FontStyle="Italic"/>
+                            </DockPanel>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Duration (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="ClickSwapDurSlider" Minimum="50" Maximum="2000" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="ClickSwapDur_Changed"/>
+                                <TextBox x:Name="ClickSwapDurBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetClickSwapDur" ToolTip="Reset to baseline"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Image size (px)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="ClickSwapSizeSlider" Minimum="8" Maximum="150" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="ClickSwapSize_Changed"/>
+                                <TextBox x:Name="ClickSwapSizeBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetClickSwapSize" ToolTip="Reset to baseline"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Auto-hide -->
+                        <TextBlock Text="AUTO-HIDE" Style="{StaticResource SectionHeader}"/>
+                        <Separator/>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button DockPanel.Dock="Right" Content="&#x21BA;" Style="{StaticResource ResetBtn}" Click="ResetAutoHide" ToolTip="Reset to baseline"/>
+                            <CheckBox x:Name="AutoHideCheck" Content="Hide laser when mouse is idle"
+                                      Checked="AutoHide_Toggle" Unchecked="AutoHide_Toggle"/>
+                        </DockPanel>
+                        <StackPanel x:Name="AutoHidePanel" IsEnabled="False">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="26"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Idle delay (ms)" Style="{StaticResource RowLabel}" Grid.Column="0"/>
+                                <Slider x:Name="AutoHideDelaySlider" Minimum="500" Maximum="30000" Grid.Column="1"
+                                        VerticalAlignment="Center" ValueChanged="AutoHideDelay_Changed"/>
+                                <TextBox x:Name="AutoHideDelayBox" Style="{StaticResource ValueBox}" Grid.Column="2"
+                                         GotFocus="ValueBox_GotFocus" LostFocus="ValueBox_LostFocus" KeyDown="ValueBox_KeyDown"/>
+                                <Button Content="&#x21BA;" Grid.Column="3" Style="{StaticResource ResetBtn}" Click="ResetAutoHideDelay" ToolTip="Reset to baseline"/>
                             </Grid>
                         </StackPanel>
 

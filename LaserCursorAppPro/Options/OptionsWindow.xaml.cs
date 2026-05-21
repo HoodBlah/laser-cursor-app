@@ -48,10 +48,12 @@ public partial class OptionsWindow : Window
     {
         DotColorPicker.SelectedColor    = ColorHelper.ParseColor(s.DotColor);
         DotSizeSlider.Value             = s.DotSize;
-        DotGlowCheck.IsChecked          = s.DotGlowEnabled;
-        DotGlowColorPicker.SelectedColor= ColorHelper.ParseColor(s.DotGlowColor);
-        DotGlowRadiusSlider.Value       = s.DotGlowRadius;
-        DotGlowPanel.IsEnabled          = s.DotGlowEnabled;
+        DotShapeCombo.SelectedIndex          = s.DotShape;
+        DotGlowCheck.IsChecked               = s.DotGlowEnabled;
+        DotGlowColorPicker.SelectedColor     = ColorHelper.ParseColor(s.DotGlowColor);
+        DotGlowRadiusSlider.Value            = s.DotGlowRadius;
+        DotGlowBloomCombo.SelectedIndex      = s.DotGlowBloom;
+        DotGlowPanel.IsEnabled               = s.DotGlowEnabled;
 
         DotImageCheck.IsChecked           = s.DotUseCustomImage;
         DotImagePanel.IsEnabled           = s.DotUseCustomImage;
@@ -81,7 +83,9 @@ public partial class OptionsWindow : Window
         TailLengthSlider.Value           = s.TailLengthMs;
         TailThicknessSlider.Value        = s.TailThickness;
         TailTaperSlider.Value            = s.TailTaperPower;
-        ButterCheck.IsChecked            = s.ButterModeEnabled;
+        TailFadeStyleCombo.SelectedIndex  = s.TailFadeStyle;
+        TrailSmoothnessSlider.Value       = s.TrailSmoothness;
+        ButterCheck.IsChecked             = s.ButterModeEnabled;
 
         TailGlowCheck.IsChecked          = s.TailGlowEnabled;
         TailGlowColorPicker.SelectedColor= ColorHelper.ParseColor(s.TailGlowColor);
@@ -93,6 +97,65 @@ public partial class OptionsWindow : Window
         WaveAmpSlider.Value  = s.WaveAmplitude;
         WaveFreqSlider.Value = s.WaveFrequency;
 
+        PulseCheck.IsChecked       = s.PulseEnabled;
+        PulsePanel.IsEnabled       = s.PulseEnabled;
+        PulseSpeedSlider.Value     = s.PulseSpeed;
+        PulseIntensitySlider.Value = s.PulseIntensity;
+
+        SpinCheck.IsChecked        = s.SpinEnabled;
+        SpinPanel.IsEnabled        = s.SpinEnabled;
+        SpinSpeedSlider.Value      = s.SpinSpeed;
+        SpinDirCombo.SelectedIndex = s.SpinCW ? 0 : 1;
+
+        TrailPatternCombo.SelectedIndex   = s.TrailPattern;
+        TrailPatternPanel.IsEnabled       = s.TrailPattern > 0;
+        TrailPatternSpeedSlider.Value     = s.TrailPatternSpeed;
+        TrailPatternIntensitySlider.Value = s.TrailPatternIntensity;
+
+        ClickEffectCheck.IsChecked           = s.ClickEffectEnabled;
+        ClickEffectPanel.IsEnabled           = s.ClickEffectEnabled;
+        ClickEffectStyleCombo.SelectedIndex  = s.ClickEffectStyle;
+        ClickEffectColorPicker.SelectedColor = ColorHelper.ParseColor(s.ClickEffectColor);
+        ClickEffectSizeSlider.Value          = s.ClickEffectSize;
+        ClickEffectDurSlider.Value           = s.ClickEffectDuration;
+
+        ParticleImageLabel.Text       = string.IsNullOrEmpty(s.ClickParticleImagePath)
+                                        ? "None (use colored dots)" : Path.GetFileName(s.ClickParticleImagePath);
+        SparkCountSlider.Value        = s.SparkCount;
+        SparkParticleSizeSlider.Value = s.SparkParticleSize;
+        SparkSpreadSlider.Value       = s.SparkSpreadDeg;
+        SparkSpeedSlider.Value        = s.SparkInitialSpeed;
+        SparkGravitySlider.Value      = s.SparkGravity;
+
+        RightClickCheck.IsChecked             = s.RightClickEnabled;
+        RightClickPanel.IsEnabled             = s.RightClickEnabled;
+        RightClickStyleCombo.SelectedIndex    = s.RightClickStyle;
+        RightClickColorPicker.SelectedColor   = ColorHelper.ParseColor(s.RightClickColor);
+        RightClickSizeSlider.Value            = s.RightClickSize;
+        RightClickDurSlider.Value             = s.RightClickDuration;
+
+        MiddleClickCheck.IsChecked            = s.MiddleClickEnabled;
+        MiddleClickPanel.IsEnabled            = s.MiddleClickEnabled;
+        MiddleClickStyleCombo.SelectedIndex   = s.MiddleClickStyle;
+        MiddleClickColorPicker.SelectedColor  = ColorHelper.ParseColor(s.MiddleClickColor);
+        MiddleClickSizeSlider.Value           = s.MiddleClickSize;
+        MiddleClickDurSlider.Value            = s.MiddleClickDuration;
+
+        DoubleClickCheck.IsChecked            = s.DoubleClickEnabled;
+        DoubleClickPanel.IsEnabled            = s.DoubleClickEnabled;
+        DoubleClickMultSlider.Value           = s.DoubleClickMultiplier;
+        DoubleClickMsSlider.Value             = s.DoubleClickDetectMs;
+
+        ClickSwapCheck.IsChecked    = s.ClickSwapEnabled;
+        ClickSwapPanel.IsEnabled    = s.ClickSwapEnabled;
+        ClickSwapImageLabel.Text    = string.IsNullOrEmpty(s.ClickSwapImagePath)
+                                      ? "No file selected" : Path.GetFileName(s.ClickSwapImagePath);
+        ClickSwapDurSlider.Value    = s.ClickSwapDurationMs;
+
+        AutoHideCheck.IsChecked   = s.AutoHideEnabled;
+        AutoHidePanel.IsEnabled   = s.AutoHideEnabled;
+        AutoHideDelaySlider.Value = s.AutoHideDelayMs;
+
         UpdateLabels(s);
     }
 
@@ -102,10 +165,33 @@ public partial class OptionsWindow : Window
         DotGlowRadiusBox.Text  = $"{s.DotGlowRadius:F0}";
         TailLengthBox.Text     = $"{s.TailLengthMs:F0}";
         TailThicknessBox.Text  = $"{s.TailThickness:F1}";
-        TailTaperBox.Text      = $"{s.TailTaperPower:F2}";
+        TailTaperBox.Text        = $"{s.TailTaperPower:F2}";
+        TrailSmoothnessBox.Text  = $"{s.TrailSmoothness:F2}";
         TailGlowWidthBox.Text  = $"{s.TailGlowWidth:F1}";
-        WaveAmpBox.Text        = $"{s.WaveAmplitude:F0}";
-        WaveFreqBox.Text       = $"{s.WaveFrequency:F1}";
+        WaveAmpBox.Text          = $"{s.WaveAmplitude:F0}";
+        WaveFreqBox.Text         = $"{s.WaveFrequency:F1}";
+        PulseSpeedBox.Text       = $"{s.PulseSpeed:F1}";
+        PulseIntensityBox.Text   = $"{s.PulseIntensity:F2}";
+        SpinSpeedBox.Text              = $"{s.SpinSpeed:F0}";
+        TrailPatternSpeedBox.Text      = $"{s.TrailPatternSpeed:F1}";
+        TrailPatternIntensityBox.Text  = $"{s.TrailPatternIntensity:F2}";
+        ClickEffectSizeBox.Text   = $"{s.ClickEffectSize:F0}";
+        ClickEffectDurBox.Text    = $"{s.ClickEffectDuration:F0}";
+        SparkCountBox.Text        = $"{s.SparkCount}";
+        SparkParticleSizeBox.Text = $"{s.SparkParticleSize:F1}";
+        SparkSpreadBox.Text       = $"{s.SparkSpreadDeg:F0}";
+        SparkSpeedBox.Text        = $"{s.SparkInitialSpeed:F0}";
+        SparkGravityBox.Text      = $"{s.SparkGravity:F0}";
+        RightClickSizeBox.Text    = $"{s.RightClickSize:F0}";
+        RightClickDurBox.Text     = $"{s.RightClickDuration:F0}";
+        MiddleClickSizeBox.Text   = $"{s.MiddleClickSize:F0}";
+        MiddleClickDurBox.Text    = $"{s.MiddleClickDuration:F0}";
+        DoubleClickMultBox.Text   = $"{s.DoubleClickMultiplier:F1}";
+        DoubleClickMsBox.Text     = $"{s.DoubleClickDetectMs:F0}";
+        ClickSwapDurBox.Text      = $"{s.ClickSwapDurationMs:F0}";
+        ClickSwapSizeSlider.Value = s.ClickSwapSize;
+        ClickSwapSizeBox.Text     = $"{s.ClickSwapSize:F0}";
+        AutoHideDelayBox.Text     = $"{s.AutoHideDelayMs:F0}";
     }
 
     // ── Notify helper ─────────────────────────────────────────────────────────
@@ -258,6 +344,21 @@ public partial class OptionsWindow : Window
         Notify();
     }
 
+    private void TailFadeStyle_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.TailFadeStyle = TailFadeStyleCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void TrailSmoothness_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.TrailSmoothness  = TrailSmoothnessSlider.Value;
+        TrailSmoothnessBox.Text    = $"{_settings.TrailSmoothness:F2}";
+        Notify();
+    }
+
     private void Butter_Toggle(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
@@ -329,6 +430,34 @@ public partial class OptionsWindow : Window
         _loading = true; DotGlowRadiusSlider.Value = _baseline.DotGlowRadius; _loading = false;
         _settings.DotGlowRadius  = _baseline.DotGlowRadius;
         DotGlowRadiusBox.Text    = $"{_baseline.DotGlowRadius:F1}";
+        Notify();
+    }
+
+    private void DotShape_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.DotShape = DotShapeCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void ResetDotShape(object s, RoutedEventArgs e)
+    {
+        _loading = true; DotShapeCombo.SelectedIndex = _baseline.DotShape; _loading = false;
+        _settings.DotShape = _baseline.DotShape;
+        Notify();
+    }
+
+    private void DotGlowBloom_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.DotGlowBloom = DotGlowBloomCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void ResetDotGlowBloom(object s, RoutedEventArgs e)
+    {
+        _loading = true; DotGlowBloomCombo.SelectedIndex = _baseline.DotGlowBloom; _loading = false;
+        _settings.DotGlowBloom = _baseline.DotGlowBloom;
         Notify();
     }
 
@@ -470,6 +599,21 @@ public partial class OptionsWindow : Window
         _loading = true; TailTaperSlider.Value = _baseline.TailTaperPower; _loading = false;
         _settings.TailTaperPower = _baseline.TailTaperPower;
         TailTaperBox.Text        = $"{_baseline.TailTaperPower:F2}";
+        Notify();
+    }
+
+    private void ResetTailFadeStyle(object s, RoutedEventArgs e)
+    {
+        _loading = true; TailFadeStyleCombo.SelectedIndex = _baseline.TailFadeStyle; _loading = false;
+        _settings.TailFadeStyle = _baseline.TailFadeStyle;
+        Notify();
+    }
+
+    private void ResetTrailSmoothness(object s, RoutedEventArgs e)
+    {
+        _loading = true; TrailSmoothnessSlider.Value = _baseline.TrailSmoothness; _loading = false;
+        _settings.TrailSmoothness = _baseline.TrailSmoothness;
+        TrailSmoothnessBox.Text   = $"{_baseline.TrailSmoothness:F2}";
         Notify();
     }
 
@@ -833,6 +977,597 @@ public partial class OptionsWindow : Window
         _loading = true; WaveFreqSlider.Value = _baseline.WaveFrequency; _loading = false;
         _settings.WaveFrequency = _baseline.WaveFrequency;
         WaveFreqBox.Text        = $"{_baseline.WaveFrequency:F1}";
+        Notify();
+    }
+
+    // ── Pulse handlers ──────────────────────────────────────────────────────────
+
+    private void Pulse_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.PulseEnabled = PulseCheck.IsChecked == true;
+        PulsePanel.IsEnabled   = _settings.PulseEnabled;
+        Notify();
+    }
+
+    private void PulseSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.PulseSpeed = PulseSpeedSlider.Value;
+        PulseSpeedBox.Text    = $"{_settings.PulseSpeed:F1}";
+        Notify();
+    }
+
+    private void PulseIntensity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.PulseIntensity = PulseIntensitySlider.Value;
+        PulseIntensityBox.Text    = $"{_settings.PulseIntensity:F2}";
+        Notify();
+    }
+
+    private void ResetPulseEnabled(object sender, RoutedEventArgs e)
+    {
+        _loading = true; PulseCheck.IsChecked = _baseline.PulseEnabled; _loading = false;
+        _settings.PulseEnabled = _baseline.PulseEnabled;
+        PulsePanel.IsEnabled   = _baseline.PulseEnabled;
+        Notify();
+    }
+
+    private void ResetPulseSpeed(object sender, RoutedEventArgs e)
+    {
+        _loading = true; PulseSpeedSlider.Value = _baseline.PulseSpeed; _loading = false;
+        _settings.PulseSpeed = _baseline.PulseSpeed;
+        PulseSpeedBox.Text    = $"{_baseline.PulseSpeed:F1}";
+        Notify();
+    }
+
+    private void ResetPulseIntensity(object sender, RoutedEventArgs e)
+    {
+        _loading = true; PulseIntensitySlider.Value = _baseline.PulseIntensity; _loading = false;
+        _settings.PulseIntensity = _baseline.PulseIntensity;
+        PulseIntensityBox.Text    = $"{_baseline.PulseIntensity:F2}";
+        Notify();
+    }
+
+    // ── Spin handlers ─────────────────────────────────────────────────────────
+
+    private void Spin_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.SpinEnabled = SpinCheck.IsChecked == true;
+        SpinPanel.IsEnabled   = _settings.SpinEnabled;
+        Notify();
+    }
+
+    private void SpinSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SpinSpeed = SpinSpeedSlider.Value;
+        SpinSpeedBox.Text    = $"{_settings.SpinSpeed:F0}";
+        Notify();
+    }
+
+    private void SpinDir_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.SpinCW = SpinDirCombo.SelectedIndex == 0;
+        Notify();
+    }
+
+    private void ResetSpinEnabled(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SpinCheck.IsChecked = _baseline.SpinEnabled; _loading = false;
+        _settings.SpinEnabled = _baseline.SpinEnabled;
+        SpinPanel.IsEnabled   = _baseline.SpinEnabled;
+        Notify();
+    }
+
+    private void ResetSpinSpeed(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SpinSpeedSlider.Value = _baseline.SpinSpeed; _loading = false;
+        _settings.SpinSpeed = _baseline.SpinSpeed;
+        SpinSpeedBox.Text    = $"{_baseline.SpinSpeed:F0}";
+        Notify();
+    }
+
+    // ── Trail pattern handlers ────────────────────────────────────────────────
+
+    private void TrailPattern_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.TrailPattern      = TrailPatternCombo.SelectedIndex;
+        TrailPatternPanel.IsEnabled = _settings.TrailPattern > 0;
+        Notify();
+    }
+
+    private void TrailPatternSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.TrailPatternSpeed = TrailPatternSpeedSlider.Value;
+        TrailPatternSpeedBox.Text    = $"{_settings.TrailPatternSpeed:F1}";
+        Notify();
+    }
+
+    private void TrailPatternIntensity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.TrailPatternIntensity = TrailPatternIntensitySlider.Value;
+        TrailPatternIntensityBox.Text    = $"{_settings.TrailPatternIntensity:F2}";
+        Notify();
+    }
+
+    private void ResetTrailPattern(object sender, RoutedEventArgs e)
+    {
+        _loading = true; TrailPatternCombo.SelectedIndex = _baseline.TrailPattern; _loading = false;
+        _settings.TrailPattern      = _baseline.TrailPattern;
+        TrailPatternPanel.IsEnabled = _baseline.TrailPattern > 0;
+        Notify();
+    }
+
+    private void ResetTrailPatternSpeed(object sender, RoutedEventArgs e)
+    {
+        _loading = true; TrailPatternSpeedSlider.Value = _baseline.TrailPatternSpeed; _loading = false;
+        _settings.TrailPatternSpeed = _baseline.TrailPatternSpeed;
+        TrailPatternSpeedBox.Text    = $"{_baseline.TrailPatternSpeed:F1}";
+        Notify();
+    }
+
+    private void ResetTrailPatternIntensity(object sender, RoutedEventArgs e)
+    {
+        _loading = true; TrailPatternIntensitySlider.Value = _baseline.TrailPatternIntensity; _loading = false;
+        _settings.TrailPatternIntensity = _baseline.TrailPatternIntensity;
+        TrailPatternIntensityBox.Text    = $"{_baseline.TrailPatternIntensity:F2}";
+        Notify();
+    }
+
+    // ── Click effect handlers ──────────────────────────────────────────────────
+
+    private void ClickEffect_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.ClickEffectEnabled = ClickEffectCheck.IsChecked == true;
+        ClickEffectPanel.IsEnabled   = _settings.ClickEffectEnabled;
+        Notify();
+    }
+
+    private void ClickEffectStyle_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.ClickEffectStyle = ClickEffectStyleCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void ClickEffectColor_Changed(object? sender, EventArgs e)
+    {
+        if (_loading) return;
+        _settings.ClickEffectColor = ColorHelper.ToHex(ClickEffectColorPicker.SelectedColor);
+        Notify();
+    }
+
+    private void ClickEffectSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.ClickEffectSize = ClickEffectSizeSlider.Value;
+        ClickEffectSizeBox.Text    = $"{_settings.ClickEffectSize:F0}";
+        Notify();
+    }
+
+    private void ClickEffectDur_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.ClickEffectDuration = ClickEffectDurSlider.Value;
+        ClickEffectDurBox.Text         = $"{_settings.ClickEffectDuration:F0}";
+        Notify();
+    }
+
+    private void ResetClickEffect(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickEffectCheck.IsChecked = _baseline.ClickEffectEnabled; _loading = false;
+        _settings.ClickEffectEnabled = _baseline.ClickEffectEnabled;
+        ClickEffectPanel.IsEnabled   = _baseline.ClickEffectEnabled;
+        Notify();
+    }
+
+    private void ResetClickEffectSize(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickEffectSizeSlider.Value = _baseline.ClickEffectSize; _loading = false;
+        _settings.ClickEffectSize = _baseline.ClickEffectSize;
+        ClickEffectSizeBox.Text    = $"{_baseline.ClickEffectSize:F0}";
+        Notify();
+    }
+
+    private void ResetClickEffectDur(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickEffectDurSlider.Value = _baseline.ClickEffectDuration; _loading = false;
+        _settings.ClickEffectDuration = _baseline.ClickEffectDuration;
+        ClickEffectDurBox.Text         = $"{_baseline.ClickEffectDuration:F0}";
+        Notify();
+    }
+
+    // ── Right-click handlers ────────────────────────────────────────────────
+
+    private void RightClick_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.RightClickEnabled = RightClickCheck.IsChecked == true;
+        RightClickPanel.IsEnabled   = _settings.RightClickEnabled;
+        Notify();
+    }
+
+    private void RightClickStyle_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.RightClickStyle = RightClickStyleCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void RightClickColor_Changed(object? sender, EventArgs e)
+    {
+        if (_loading) return;
+        _settings.RightClickColor = ColorHelper.ToHex(RightClickColorPicker.SelectedColor);
+        Notify();
+    }
+
+    private void RightClickSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.RightClickSize = RightClickSizeSlider.Value;
+        RightClickSizeBox.Text    = $"{_settings.RightClickSize:F0}";
+        Notify();
+    }
+
+    private void RightClickDur_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.RightClickDuration = RightClickDurSlider.Value;
+        RightClickDurBox.Text         = $"{_settings.RightClickDuration:F0}";
+        Notify();
+    }
+
+    private void ResetRightClick(object sender, RoutedEventArgs e)
+    {
+        _loading = true; RightClickCheck.IsChecked = _baseline.RightClickEnabled; _loading = false;
+        _settings.RightClickEnabled = _baseline.RightClickEnabled;
+        RightClickPanel.IsEnabled   = _baseline.RightClickEnabled;
+        Notify();
+    }
+
+    private void ResetRightClickSize(object sender, RoutedEventArgs e)
+    {
+        _loading = true; RightClickSizeSlider.Value = _baseline.RightClickSize; _loading = false;
+        _settings.RightClickSize = _baseline.RightClickSize;
+        RightClickSizeBox.Text    = $"{_baseline.RightClickSize:F0}";
+        Notify();
+    }
+
+    private void ResetRightClickDur(object sender, RoutedEventArgs e)
+    {
+        _loading = true; RightClickDurSlider.Value = _baseline.RightClickDuration; _loading = false;
+        _settings.RightClickDuration = _baseline.RightClickDuration;
+        RightClickDurBox.Text         = $"{_baseline.RightClickDuration:F0}";
+        Notify();
+    }
+
+    // ── Middle-click handlers ──────────────────────────────────────────────
+
+    private void MiddleClick_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.MiddleClickEnabled = MiddleClickCheck.IsChecked == true;
+        MiddleClickPanel.IsEnabled   = _settings.MiddleClickEnabled;
+        Notify();
+    }
+
+    private void MiddleClickStyle_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.MiddleClickStyle = MiddleClickStyleCombo.SelectedIndex;
+        Notify();
+    }
+
+    private void MiddleClickColor_Changed(object? sender, EventArgs e)
+    {
+        if (_loading) return;
+        _settings.MiddleClickColor = ColorHelper.ToHex(MiddleClickColorPicker.SelectedColor);
+        Notify();
+    }
+
+    private void MiddleClickSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.MiddleClickSize = MiddleClickSizeSlider.Value;
+        MiddleClickSizeBox.Text    = $"{_settings.MiddleClickSize:F0}";
+        Notify();
+    }
+
+    private void MiddleClickDur_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.MiddleClickDuration = MiddleClickDurSlider.Value;
+        MiddleClickDurBox.Text         = $"{_settings.MiddleClickDuration:F0}";
+        Notify();
+    }
+
+    private void ResetMiddleClick(object sender, RoutedEventArgs e)
+    {
+        _loading = true; MiddleClickCheck.IsChecked = _baseline.MiddleClickEnabled; _loading = false;
+        _settings.MiddleClickEnabled = _baseline.MiddleClickEnabled;
+        MiddleClickPanel.IsEnabled   = _baseline.MiddleClickEnabled;
+        Notify();
+    }
+
+    private void ResetMiddleClickSize(object sender, RoutedEventArgs e)
+    {
+        _loading = true; MiddleClickSizeSlider.Value = _baseline.MiddleClickSize; _loading = false;
+        _settings.MiddleClickSize = _baseline.MiddleClickSize;
+        MiddleClickSizeBox.Text    = $"{_baseline.MiddleClickSize:F0}";
+        Notify();
+    }
+
+    private void ResetMiddleClickDur(object sender, RoutedEventArgs e)
+    {
+        _loading = true; MiddleClickDurSlider.Value = _baseline.MiddleClickDuration; _loading = false;
+        _settings.MiddleClickDuration = _baseline.MiddleClickDuration;
+        MiddleClickDurBox.Text         = $"{_baseline.MiddleClickDuration:F0}";
+        Notify();
+    }
+
+    // ── Double-click handlers ─────────────────────────────────────────────
+
+    private void DoubleClick_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.DoubleClickEnabled = DoubleClickCheck.IsChecked == true;
+        DoubleClickPanel.IsEnabled   = _settings.DoubleClickEnabled;
+        Notify();
+    }
+
+    private void DoubleClickMult_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.DoubleClickMultiplier = DoubleClickMultSlider.Value;
+        DoubleClickMultBox.Text          = $"{_settings.DoubleClickMultiplier:F1}";
+        Notify();
+    }
+
+    private void DoubleClickMs_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.DoubleClickDetectMs = (int)Math.Round(DoubleClickMsSlider.Value);
+        DoubleClickMsBox.Text          = $"{_settings.DoubleClickDetectMs:F0}";
+        Notify();
+    }
+
+    private void ResetDoubleClick(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DoubleClickCheck.IsChecked = _baseline.DoubleClickEnabled; _loading = false;
+        _settings.DoubleClickEnabled = _baseline.DoubleClickEnabled;
+        DoubleClickPanel.IsEnabled   = _baseline.DoubleClickEnabled;
+        Notify();
+    }
+
+    private void ResetDoubleClickMult(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DoubleClickMultSlider.Value = _baseline.DoubleClickMultiplier; _loading = false;
+        _settings.DoubleClickMultiplier = _baseline.DoubleClickMultiplier;
+        DoubleClickMultBox.Text          = $"{_baseline.DoubleClickMultiplier:F1}";
+        Notify();
+    }
+
+    private void ResetDoubleClickMs(object sender, RoutedEventArgs e)
+    {
+        _loading = true; DoubleClickMsSlider.Value = _baseline.DoubleClickDetectMs; _loading = false;
+        _settings.DoubleClickDetectMs = _baseline.DoubleClickDetectMs;
+        DoubleClickMsBox.Text          = $"{_baseline.DoubleClickDetectMs:F0}";
+        Notify();
+    }
+
+    // ── Auto-hide handlers ─────────────────────────────────────────────────────
+
+    private void AutoHide_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.AutoHideEnabled = AutoHideCheck.IsChecked == true;
+        AutoHidePanel.IsEnabled   = _settings.AutoHideEnabled;
+        Notify();
+    }
+
+    private void AutoHideDelay_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.AutoHideDelayMs = AutoHideDelaySlider.Value;
+        AutoHideDelayBox.Text      = $"{_settings.AutoHideDelayMs:F0}";
+        Notify();
+    }
+
+    private void ResetAutoHide(object sender, RoutedEventArgs e)
+    {
+        _loading = true; AutoHideCheck.IsChecked = _baseline.AutoHideEnabled; _loading = false;
+        _settings.AutoHideEnabled = _baseline.AutoHideEnabled;
+        AutoHidePanel.IsEnabled   = _baseline.AutoHideEnabled;
+        Notify();
+    }
+
+    private void ResetAutoHideDelay(object sender, RoutedEventArgs e)
+    {
+        _loading = true; AutoHideDelaySlider.Value = _baseline.AutoHideDelayMs; _loading = false;
+        _settings.AutoHideDelayMs = _baseline.AutoHideDelayMs;
+        AutoHideDelayBox.Text      = $"{_baseline.AutoHideDelayMs:F0}";
+        Notify();
+    }
+
+    // ── Particle image handlers ──────────────────────────────────────────────────
+
+    private void ParticleImage_Browse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title  = "Select Particle Image",
+            Filter = "Image Files (*.png;*.jpg;*.bmp;*.gif)|*.png;*.jpg;*.bmp;*.gif"
+        };
+        if (dlg.ShowDialog() != true) return;
+        _settings.ClickParticleImagePath = dlg.FileName;
+        ParticleImageLabel.Text          = Path.GetFileName(dlg.FileName);
+        Notify();
+    }
+
+    private void ParticleImage_Clear(object sender, RoutedEventArgs e)
+    {
+        _settings.ClickParticleImagePath = "";
+        ParticleImageLabel.Text          = "None (use colored dots)";
+        Notify();
+    }
+
+    // ── Spark property handlers ─────────────────────────────────────────────────
+
+    private void SparkCount_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SparkCount = (int)Math.Round(SparkCountSlider.Value);
+        SparkCountBox.Text    = $"{_settings.SparkCount}";
+        Notify();
+    }
+
+    private void SparkParticleSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SparkParticleSize  = SparkParticleSizeSlider.Value;
+        SparkParticleSizeBox.Text     = $"{_settings.SparkParticleSize:F1}";
+        Notify();
+    }
+
+    private void SparkSpread_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SparkSpreadDeg = SparkSpreadSlider.Value;
+        SparkSpreadBox.Text       = $"{_settings.SparkSpreadDeg:F0}";
+        Notify();
+    }
+
+    private void SparkSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SparkInitialSpeed = SparkSpeedSlider.Value;
+        SparkSpeedBox.Text           = $"{_settings.SparkInitialSpeed:F0}";
+        Notify();
+    }
+
+    private void SparkGravity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.SparkGravity = SparkGravitySlider.Value;
+        SparkGravityBox.Text    = $"{_settings.SparkGravity:F0}";
+        Notify();
+    }
+
+    private void ResetSparkCount(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SparkCountSlider.Value = _baseline.SparkCount; _loading = false;
+        _settings.SparkCount = _baseline.SparkCount;
+        SparkCountBox.Text    = $"{_baseline.SparkCount}";
+        Notify();
+    }
+
+    private void ResetSparkParticleSize(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SparkParticleSizeSlider.Value = _baseline.SparkParticleSize; _loading = false;
+        _settings.SparkParticleSize  = _baseline.SparkParticleSize;
+        SparkParticleSizeBox.Text     = $"{_baseline.SparkParticleSize:F1}";
+        Notify();
+    }
+
+    private void ResetSparkSpread(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SparkSpreadSlider.Value = _baseline.SparkSpreadDeg; _loading = false;
+        _settings.SparkSpreadDeg = _baseline.SparkSpreadDeg;
+        SparkSpreadBox.Text       = $"{_baseline.SparkSpreadDeg:F0}";
+        Notify();
+    }
+
+    private void ResetSparkSpeed(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SparkSpeedSlider.Value = _baseline.SparkInitialSpeed; _loading = false;
+        _settings.SparkInitialSpeed = _baseline.SparkInitialSpeed;
+        SparkSpeedBox.Text           = $"{_baseline.SparkInitialSpeed:F0}";
+        Notify();
+    }
+
+    private void ResetSparkGravity(object sender, RoutedEventArgs e)
+    {
+        _loading = true; SparkGravitySlider.Value = _baseline.SparkGravity; _loading = false;
+        _settings.SparkGravity = _baseline.SparkGravity;
+        SparkGravityBox.Text    = $"{_baseline.SparkGravity:F0}";
+        Notify();
+    }
+
+    // ── Click cursor swap handlers ───────────────────────────────────────────────
+
+    private void ClickSwap_Toggle(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _settings.ClickSwapEnabled = ClickSwapCheck.IsChecked == true;
+        ClickSwapPanel.IsEnabled   = _settings.ClickSwapEnabled;
+        Notify();
+    }
+
+    private void ClickSwapImage_Browse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title  = "Select Click Swap Image",
+            Filter = "Image Files (*.png;*.jpg;*.bmp;*.gif)|*.png;*.jpg;*.bmp;*.gif"
+        };
+        if (dlg.ShowDialog() != true) return;
+        _settings.ClickSwapImagePath = dlg.FileName;
+        ClickSwapImageLabel.Text     = Path.GetFileName(dlg.FileName);
+        Notify();
+    }
+
+    private void ClickSwapImage_Clear(object sender, RoutedEventArgs e)
+    {
+        _settings.ClickSwapImagePath = "";
+        ClickSwapImageLabel.Text     = "No file selected";
+        Notify();
+    }
+
+    private void ClickSwapDur_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.ClickSwapDurationMs = ClickSwapDurSlider.Value;
+        ClickSwapDurBox.Text           = $"{_settings.ClickSwapDurationMs:F0}";
+        Notify();
+    }
+
+    private void ResetClickSwap(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickSwapCheck.IsChecked = _baseline.ClickSwapEnabled; _loading = false;
+        _settings.ClickSwapEnabled = _baseline.ClickSwapEnabled;
+        ClickSwapPanel.IsEnabled   = _baseline.ClickSwapEnabled;
+        Notify();
+    }
+
+    private void ResetClickSwapDur(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickSwapDurSlider.Value = _baseline.ClickSwapDurationMs; _loading = false;
+        _settings.ClickSwapDurationMs = _baseline.ClickSwapDurationMs;
+        ClickSwapDurBox.Text           = $"{_baseline.ClickSwapDurationMs:F0}";
+        Notify();
+    }
+
+    private void ClickSwapSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        _settings.ClickSwapSize = ClickSwapSizeSlider.Value;
+        ClickSwapSizeBox.Text   = $"{_settings.ClickSwapSize:F0}";
+        Notify();
+    }
+
+    private void ResetClickSwapSize(object sender, RoutedEventArgs e)
+    {
+        _loading = true; ClickSwapSizeSlider.Value = _baseline.ClickSwapSize; _loading = false;
+        _settings.ClickSwapSize = _baseline.ClickSwapSize;
+        ClickSwapSizeBox.Text   = $"{_baseline.ClickSwapSize:F0}";
         Notify();
     }
 }

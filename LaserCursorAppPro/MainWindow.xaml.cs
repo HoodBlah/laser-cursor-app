@@ -16,8 +16,27 @@ public partial class MainWindow : Window
     [DllImport("user32.dll")] private static extern int  SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     [DllImport("user32.dll")] private static extern int  GetWindowLong(IntPtr hWnd, int nIndex);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT lpPoint);
+    [DllImport("user32.dll", SetLastError = true)] private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool   UnhookWindowsHookEx(IntPtr hhk);
+    [DllImport("user32.dll")]                      private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+    [DllImport("kernel32.dll")]                    private static extern IntPtr GetModuleHandle(string? lpModuleName);
 
     [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X; public int Y; }
+    [StructLayout(LayoutKind.Sequential)] private struct MSLLHOOKSTRUCT
+    {
+        public POINT pt; public uint mouseData, flags, time; public IntPtr dwExtraInfo;
+    }
+
+    // ── Mouse hook ──────────────────────────────────────────────────────────────
+    private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+    private const int WH_MOUSE_LL    = 14;
+    private const int WM_LBUTTONDOWN = 0x0201;
+    private const int WM_RBUTTONDOWN = 0x0204;
+    private const int WM_MBUTTONDOWN = 0x0207;
+    private IntPtr              _mouseHook;
+    private LowLevelMouseProc?  _mouseProc;
+    private DateTime            _lastLeftClick      = DateTime.MinValue;
+    private int                 _doubleClickDetectMs = 350;
 
     private static readonly IntPtr HWND_TOPMOST = new(-1);
     private const int    GWL_EXSTYLE        = -20;
@@ -35,7 +54,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += OnLoaded;
+        Loaded  += OnLoaded;
+        Closing += (_, _) => UninstallMouseHook();
         SystemEvents.DisplaySettingsChanged += (_, _) => FitToVirtualDesktop();
     }
 
@@ -44,10 +64,12 @@ public partial class MainWindow : Window
         ConfigureAsClickThroughOverlay();
         FitToVirtualDesktop();
         CompositionTarget.Rendering += OnRendering;
+        InstallMouseHook();
     }
 
     public void ApplySettings(LaserSettings s)
     {
+        _doubleClickDetectMs = s.DoubleClickDetectMs;
         OverlayControl.ApplySettings(s);
     }
 
@@ -83,7 +105,58 @@ public partial class MainWindow : Window
         OverlayControl.Clear();
         base.Hide();
     }
+    // ── Mouse hook ─────────────────────────────────────────────────────────────
 
+    private void InstallMouseHook()
+    {
+        _mouseProc = MouseHookCallback;
+        using var proc = System.Diagnostics.Process.GetCurrentProcess();
+        _mouseHook = SetWindowsHookEx(WH_MOUSE_LL, _mouseProc,
+                                      GetModuleHandle(proc.MainModule?.ModuleName), 0);
+    }
+
+    private void UninstallMouseHook()
+    {
+        if (_mouseHook != IntPtr.Zero)
+        {
+            UnhookWindowsHookEx(_mouseHook);
+            _mouseHook = IntPtr.Zero;
+        }
+    }
+
+    private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode >= 0)
+        {
+            int btn = -1;
+            if      (wParam == (IntPtr)WM_LBUTTONDOWN) btn = 0;
+            else if (wParam == (IntPtr)WM_RBUTTONDOWN) btn = 1;
+            else if (wParam == (IntPtr)WM_MBUTTONDOWN) btn = 2;
+
+            if (btn >= 0)
+            {
+                var s      = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
+                var screen = new WpfPoint(s.pt.X, s.pt.Y);
+                int effectBtn = btn;
+                if (btn == 0)
+                {
+                    var now = DateTime.UtcNow;
+                    if ((now - _lastLeftClick).TotalMilliseconds <= _doubleClickDetectMs)
+                        effectBtn = 3; // double-click
+                    _lastLeftClick = now;
+                }
+                int captured = effectBtn;
+                Dispatcher.BeginInvoke(() =>
+                {
+                    var local = PointFromScreen(screen);
+                    OverlayControl.AddClickEffect(local, captured);
+                    if (captured == 0 || captured == 3)
+                        OverlayControl.TriggerClickSwap();
+                });
+            }
+        }
+        return CallNextHookEx(_mouseHook, nCode, wParam, lParam);
+    }
     // ── Win32 overlay setup ───────────────────────────────────────────────────
 
     private void ConfigureAsClickThroughOverlay()
