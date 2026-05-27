@@ -17,6 +17,8 @@ public partial class MainWindow : Window
     [DllImport("user32.dll")] private static extern int     GetWindowLong(IntPtr hWnd, int nIndex);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string? lpszWindow);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT lpPoint);
     [DllImport("user32.dll", SetLastError = true)] private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool   UnhookWindowsHookEx(IntPtr hhk);
@@ -123,6 +125,9 @@ public partial class MainWindow : Window
     {
         _isEnabled = true;
         base.Show();
+        // WPF re-applies Topmost="True" on Show(), which pushes us above the taskbar.
+        // Re-raise the taskbar immediately after so it stays on top of our overlay.
+        EnsureTaskbarsOnTop();
     }
 
     public new void Hide()
@@ -237,8 +242,18 @@ public partial class MainWindow : Window
     }
     // ── WndProc hook (taskbar click-through) ────────────────────────────────
 
-    private const int WM_NCHITTEST  = 0x0084;
-    private const int HTTRANSPARENT = -1;
+    private const int  WM_NCHITTEST       = 0x0084;
+    private const int  HTTRANSPARENT      = -1;
+    private const int  WM_WINDOWPOSCHANGED = 0x0047;
+    private const uint SWP_NOZORDER       = 0x0004;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WINDOWPOS
+    {
+        public IntPtr hwnd, hwndInsertAfter;
+        public int    x, y, cx, cy;
+        public uint   flags;
+    }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
@@ -247,7 +262,30 @@ public partial class MainWindow : Window
             handled = true;
             return (IntPtr)HTTRANSPARENT;
         }
+        if (msg == WM_WINDOWPOSCHANGED)
+        {
+            // If our z-order changed, re-raise all taskbars above us.
+            var pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
+            if ((pos.flags & SWP_NOZORDER) == 0)
+                Dispatcher.BeginInvoke(EnsureTaskbarsOnTop);
+        }
         return IntPtr.Zero;
+    }
+
+    // Raise all taskbar windows (primary + secondary monitors) above our overlay.
+    // Both are HWND_TOPMOST; whichever calls SetWindowPos last wins the z-order top-spot.
+    private void EnsureTaskbarsOnTop()
+    {
+        var primary = FindWindow("Shell_TrayWnd", null);
+        if (primary != IntPtr.Zero)
+            SetWindowPos(primary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+        var secondary = FindWindowEx(IntPtr.Zero, IntPtr.Zero, "Shell_SecondaryTrayWnd", null);
+        while (secondary != IntPtr.Zero)
+        {
+            SetWindowPos(secondary, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+            secondary = FindWindowEx(IntPtr.Zero, secondary, "Shell_SecondaryTrayWnd", null);
+        }
     }
 
     // ── Win32 overlay setup ───────────────────────────────────────────────────
@@ -258,12 +296,7 @@ public partial class MainWindow : Window
         var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
         SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        // Re-raise the taskbar above our overlay so it stays accessible.
-        // Both our overlay and the taskbar are HWND_TOPMOST; the one set last
-        // ends up on top — so we explicitly put the taskbar back above us.
-        var taskbar = FindWindow("Shell_TrayWnd", null);
-        if (taskbar != IntPtr.Zero)
-            SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        EnsureTaskbarsOnTop();
     }
 
     private void FitToVirtualDesktop()
