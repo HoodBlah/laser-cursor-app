@@ -1,21 +1,12 @@
-﻿<Window x:Class="LaserCursorApp.MainWindow"
+<Window x:Class="LaserCursorApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LaserCursorApp"
-        mc:Ignorable="d"
-        Title="Laser Cursor"
         WindowStyle="None"
-        ResizeMode="NoResize"
-        ShowInTaskbar="False"
-        ShowActivated="False"
-        Topmost="True"
         AllowsTransparency="True"
         Background="Transparent"
-        Focusable="False"
+        Topmost="True"
+        ShowInTaskbar="False"
         IsHitTestVisible="False">
-    <Grid Background="Transparent">
-        <local:LaserOverlayControl x:Name="OverlayControl" />
-    </Grid>
+    <local:LaserOverlayControl x:Name="OverlayControl"/>
 </Window>

@@ -1,4 +1,4 @@
-namespace LaserCursorAppPro.Models;
+namespace LaserCursorApp.Models;
 
 public class LaserProfile
 {

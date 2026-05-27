@@ -1,8 +1,6 @@
-﻿<Application x:Class="LaserCursorApp.App"
+<Application x:Class="LaserCursorApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:LaserCursorApp">
-    <Application.Resources>
-         
-    </Application.Resources>
+    <Application.Resources/>
 </Application>

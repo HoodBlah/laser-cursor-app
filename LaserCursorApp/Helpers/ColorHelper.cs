@@ -1,7 +1,7 @@
 using System.Windows.Media;
 using MediaColor = System.Windows.Media.Color;
 
-namespace LaserCursorAppPro.Helpers;
+namespace LaserCursorApp.Helpers;
 
 public static class ColorHelper
 {

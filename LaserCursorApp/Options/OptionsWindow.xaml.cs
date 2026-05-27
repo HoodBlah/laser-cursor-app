@@ -3,9 +3,9 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using LaserCursorAppPro.Helpers;
-using LaserCursorAppPro.Models;
-using LaserCursorAppPro.Services;
+using LaserCursorApp.Helpers;
+using LaserCursorApp.Models;
+using LaserCursorApp.Services;
 using MediaColor  = System.Windows.Media.Color;
 using MessageBox  = System.Windows.MessageBox;
 using WpfPoint    = System.Windows.Point;
@@ -13,7 +13,7 @@ using WpfTextBox  = System.Windows.Controls.TextBox;
 using WpfKey      = System.Windows.Input.Key;
 using WpfKeyArgs  = System.Windows.Input.KeyEventArgs;
 
-namespace LaserCursorAppPro.Options;
+namespace LaserCursorApp.Options;
 
 public partial class OptionsWindow : Window
 {

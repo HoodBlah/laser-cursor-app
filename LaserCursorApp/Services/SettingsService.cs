@@ -1,8 +1,8 @@
 using System.IO;
 using System.Text.Json;
-using LaserCursorAppPro.Models;
+using LaserCursorApp.Models;
 
-namespace LaserCursorAppPro.Services;
+namespace LaserCursorApp.Services;
 
 public static class SettingsService
 {

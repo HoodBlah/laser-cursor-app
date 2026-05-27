@@ -3,13 +3,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using LaserCursorAppPro.Helpers;
+using LaserCursorApp.Helpers;
 using MediaColor  = System.Windows.Media.Color;
 using WpfPoint    = System.Windows.Point;
 using WpfMouseArgs = System.Windows.Input.MouseEventArgs;
 using UserControl  = System.Windows.Controls.UserControl;
 
-namespace LaserCursorAppPro.Controls;
+namespace LaserCursorApp.Controls;
 
 public partial class ColorPickerControl : UserControl
 {
