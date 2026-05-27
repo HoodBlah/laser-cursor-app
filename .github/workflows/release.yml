@@ -1,9 +1,9 @@
-name: Release Pro
+name: Release
 
 on:
   push:
-    branches:
-      - pro
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Publish
         run: >
-          dotnet publish LaserCursorAppPro/LaserCursorAppPro.csproj
+          dotnet publish LaserCursorApp/LaserCursorApp.csproj
           -c Release
           -r win-x64
           --self-contained true
@@ -36,7 +36,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          $tag = "pro-v0.${{ github.run_number }}"
-          gh release create $tag publish/LaserCursorAppPro.exe `
-            --title "LaserCursorApp Pro $tag" `
-            --notes "Automated Pro release from commit ${{ github.sha }}"
+          $tag = "${{ github.ref_name }}"
+          gh release create $tag publish/LaserCursorApp.exe `
+            --title "$tag" `
+            --notes "Release $tag" `
+            --latest

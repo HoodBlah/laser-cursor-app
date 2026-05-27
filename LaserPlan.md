@@ -13,9 +13,9 @@
 
 ---
 
-## Pro Features
+## Advanced Features
 
-All Basic features are included. Accessed via a dedicated
+Accessed via a dedicated
 **Options** window opened from the tray icon. Settings persist across sessions. A live
 preview panel updates in real-time as values are adjusted. Settings can be exported and
 imported as `.lasercfg` preset files.

@@ -48,7 +48,7 @@ public partial class App : Application
         _trayIcon = new Forms.NotifyIcon
         {
             Icon              = System.Drawing.SystemIcons.Application,
-            Text              = "Laser Cursor Pro",
+            Text              = "Laser Cursor",
             ContextMenuStrip  = menu,
             Visible           = true,
         };
@@ -92,7 +92,7 @@ public partial class App : Application
         if (_trayIcon is null) return;
         var state  = _laserEnabled ? "ON" : "OFF";
         var butter = _settings.ButterModeEnabled ? " [Butter]" : "";
-        _trayIcon.Text = $"Laser Cursor Pro \u2014 {state}{butter}";
+        _trayIcon.Text = $"Laser Cursor \u2014 {state}{butter}";
         if (_butterItem is not null)
             _butterItem.Checked = _settings.ButterModeEnabled;
     }
