@@ -7,7 +7,7 @@ namespace LaserCursorApp.Services;
 public static class SettingsService
 {
     private static readonly string AppDataDir =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LaserCursorPro");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LaserCursorApp");
 
     private static readonly string SettingsFile = Path.Combine(AppDataDir, "settings.json");
     private static readonly string ProfilesFile  = Path.Combine(AppDataDir, "profiles.json");

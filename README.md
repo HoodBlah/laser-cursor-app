@@ -54,7 +54,7 @@ No install needed — just download and run `LaserCursorApp.exe`.
 
 ### Profiles & Presets
 - Create, rename, and delete named profiles (e.g. "Presentation", "Stream", "Gaming")
-- Export and import profiles as `.lasercfg` files
+- Export and import profiles as `.json` files (shareable anywhere)
 - Built-in starter presets: Classic Red, Blue Ice, Golden, Neon Green, Ghost, Cyberpunk
 
 ---

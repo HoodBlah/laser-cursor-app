@@ -792,7 +792,7 @@ public partial class OptionsWindow : Window
 
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            Filter   = "Laser Profile (*.lasercfg)|*.lasercfg",
+            Filter   = "Laser Profile (*.json)|*.json",
             FileName = _profiles[idx].Name
         };
         if (dlg.ShowDialog() != true) return;
@@ -810,7 +810,7 @@ public partial class OptionsWindow : Window
 
     private void Profile_Import(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Laser Profile (*.lasercfg)|*.lasercfg" };
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Laser Profile (*.json)|*.json" };
         if (dlg.ShowDialog() != true) return;
 
         try

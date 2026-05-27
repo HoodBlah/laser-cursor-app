@@ -18,7 +18,7 @@
 Accessed via a dedicated
 **Options** window opened from the tray icon. Settings persist across sessions. A live
 preview panel updates in real-time as values are adjusted. Settings can be exported and
-imported as `.lasercfg` preset files.
+imported as `.json` preset files.
 
 ---
 
