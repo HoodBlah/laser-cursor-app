@@ -1,22 +1,7 @@
 # Laser Cursor — Feature Plan
-
 ---
 
-## Version Strategy
-
-Two separate applications, two separate GitHub branches, two separate executables:
-
-| | **Basic** (free) | **Pro** (paid) |
-|---|---|---|
-| Branch | `basic` | `pro` |
-| Project folder | `LaserCursorApp/` | `LaserCursorAppPro/` |
-| Executable | `LaserCursorApp.exe` | `LaserCursorAppPro.exe` |
-
----
-
-## Basic Version — Included Features
-
-The free tier. Ships today.
+## Basic Features
 
 - ✅ Red laser trail with smooth Catmull-Rom curve rendering
 - ✅ Dynamic tapered trail (thick at head, fades to nothing at tail)
@@ -28,9 +13,9 @@ The free tier. Ships today.
 
 ---
 
-## Pro Version — Premium Features
+## Pro Features
 
-All Basic features are included. The following are Pro-only, accessed via a dedicated
+All Basic features are included. Accessed via a dedicated
 **Options** window opened from the tray icon. Settings persist across sessions. A live
 preview panel updates in real-time as values are adjusted. Settings can be exported and
 imported as `.lasercfg` preset files.
