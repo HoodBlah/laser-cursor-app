@@ -12,9 +12,11 @@ namespace LaserCursorApp;
 public partial class MainWindow : Window
 {
     // ── Win32 ─────────────────────────────────────────────────────────────────
-    [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
-    [DllImport("user32.dll")] private static extern int  SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-    [DllImport("user32.dll")] private static extern int  GetWindowLong(IntPtr hWnd, int nIndex);
+    [DllImport("user32.dll")] private static extern bool    SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+    [DllImport("user32.dll")] private static extern int     SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    [DllImport("user32.dll")] private static extern int     GetWindowLong(IntPtr hWnd, int nIndex);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT lpPoint);
     [DllImport("user32.dll", SetLastError = true)] private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool   UnhookWindowsHookEx(IntPtr hhk);
@@ -78,9 +80,8 @@ public partial class MainWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         ConfigureAsClickThroughOverlay();
-        // Hook WM_NCHITTEST so Windows always routes mouse input to windows below the overlay.
-        // WS_EX_TRANSPARENT alone doesn't reliably pass through drag operations onto the taskbar.
-        HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?.AddHook(WndProc);
+        // Hook WM_NCHITTEST via PresentationSource (the reliable WPF path).
+        (PresentationSource.FromVisual(this) as HwndSource)?.AddHook(WndProc);
         FitToVirtualDesktop();
         CompositionTarget.Rendering += OnRendering;
         InstallMouseHook();
@@ -257,6 +258,12 @@ public partial class MainWindow : Window
         var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
         SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        // Re-raise the taskbar above our overlay so it stays accessible.
+        // Both our overlay and the taskbar are HWND_TOPMOST; the one set last
+        // ends up on top — so we explicitly put the taskbar back above us.
+        var taskbar = FindWindow("Shell_TrayWnd", null);
+        if (taskbar != IntPtr.Zero)
+            SetWindowPos(taskbar, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     private void FitToVirtualDesktop()
