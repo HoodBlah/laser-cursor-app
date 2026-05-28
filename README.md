@@ -1,3 +1,7 @@
+<img width="800" height="450" alt="lasercursor gif" src="https://github.com/user-attachments/assets/94bf10e0-14cc-42ff-b4aa-800b2e801468" />
+
+[Laser Cursor Demo Video/Tutorial](https://www.youtube.com/watch?v=BLM1S0KrkrY)
+
 # Laser Cursor
 
 A lightweight Windows desktop overlay that replaces your boring cursor with a smooth, customizable laser trail. Built for presenters, streamers, and anyone who wants their cursor to actually be visible.
