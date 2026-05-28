@@ -16,6 +16,11 @@ No install needed — just download and run `LaserCursorApp.exe`.
 
 ---
 
+## Support
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C4Z8209YYL)
+
+---
+
 ## Features
 
 ### Core
